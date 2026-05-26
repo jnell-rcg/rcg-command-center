@@ -1,0 +1,52 @@
+[
+  {
+    "id": 148397241,
+    "title": "Janelle & Rick Gym Meeting",
+    "date": "2026-05-21",
+    "url": "https://fathom.video/calls/682647767",
+    "summary": "New sales model: sprint replaced by single retainer fee; $2k–$2.5k paid diagnostic as deposit. Onboarding capacity 3–4 clients/month. Ops Tower URL/sync fix needed. Coefficient access for Maria/Brandon.",
+    "actionItems": [
+      { "text": "Email attorney — send Zach + Janelle contracts for review", "owner": "Rick" },
+      { "text": "Fix Ops Tower URL/sync issues", "owner": "Rick" },
+      { "text": "Schedule 2x/wk onboarding with Zach (Fanbases, CRM, paid diagnostic)", "owner": "Rick" },
+      { "text": "Send DA Ops plan (Data Room) to Noah for AI CFO KPI formulas", "owner": "Rick" },
+      { "text": "Remind Rick next week re: IVF scheduling", "owner": "Janelle" }
+    ]
+  },
+  {
+    "id": 147345639,
+    "title": "Janelle & Rick 1:1",
+    "date": "2026-05-18",
+    "url": "https://fathom.video/calls/674883788",
+    "summary": "Cloudflare DNS migration to unify robyncg.com domain. NPS survey for client feedback. Zach leading sales going forward. AI CFO sprint outline for Joey.",
+    "actionItems": [
+      { "text": "Add Rick + team to DA Slack; clean channels; add DA logo", "owner": "Rick" },
+      { "text": "DM Luca re: Cloudflare DNS migration — confirm feasibility/steps", "owner": "Rick" },
+      { "text": "Draft 6–8 wk CFO sprint outline for Joey", "owner": "Rick" }
+    ]
+  },
+  {
+    "id": 140460899,
+    "title": "Janelle & Rick May Game Plan",
+    "date": "2026-04-23",
+    "url": "https://fathom.video/calls/646437795",
+    "summary": "Align on May game plan, client strategy, and upcoming events. Carbon pivot to AI agents for workflow automation. New retainer model billing hours against a base fee.",
+    "actionItems": [
+      { "text": "Pivot from Carbon to AI agents for workflow automation", "owner": "Janelle" },
+      { "text": "Implement new retainer model — bill hours against base fee", "owner": "Rick" },
+      { "text": "Prepare DA event strategy and Janelle's role at the event", "owner": "Janelle" }
+    ]
+  },
+  {
+    "id": 138537792,
+    "title": "Janelle & Rick Gym Meeting",
+    "date": "2026-04-16",
+    "url": "https://fathom.video/calls/637847511",
+    "summary": "CryoCon tasks and lead-capture strategy. New funnel: QR Code → Book a Call → Paid Audit ($500). Presentation simplified to 5 key numbers.",
+    "actionItems": [
+      { "text": "Build CryoCon QR code lead-capture funnel in GHL", "owner": "Janelle" },
+      { "text": "Simplify presentation to 5 key numbers — withhold full data room", "owner": "Rick" },
+      { "text": "Set up paid audit ($500) as funnel qualifier", "owner": "Janelle" }
+    ]
+  }
+]

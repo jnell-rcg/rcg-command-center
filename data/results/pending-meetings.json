@@ -1,0 +1,80 @@
+[
+  {
+    "id": "f-dh-0504-01",
+    "source": "Fathom",
+    "actionItem": "Clear Rick's calendar Mon May 11 + Tue AM May 12",
+    "summary": "RCG Dept Heads (May 4) — calendar blocking task for Janelle (already past due date)",
+    "owner": "Janelle",
+    "client": "RCG Internal",
+    "priority": "Low",
+    "category": "Internal Action Item",
+    "isOverdue": true,
+    "rawContext": "Clear Rick's calendar Mon May 11 + Tue AM May 12 — assigned to Janelle",
+    "createdAt": "2026-05-04T00:00:00Z"
+  },
+  {
+    "id": "f-dh-0504-02",
+    "source": "Fathom",
+    "actionItem": "Email Beth re: DA Slack migration (client-side setup)",
+    "summary": "RCG Dept Heads (May 4) — Janelle to coordinate DA Slack migration with Beth",
+    "owner": "Janelle",
+    "client": "Dealership Accelerator",
+    "priority": "Medium",
+    "category": "Internal Action Item",
+    "isOverdue": true,
+    "rawContext": "Email Beth re: DA Slack migration (client-side) — assigned to Janelle",
+    "createdAt": "2026-05-04T00:00:00Z"
+  },
+  {
+    "id": "f-dh-0504-03",
+    "source": "Fathom",
+    "actionItem": "Draft AI agent concept for client comms + month-end summaries",
+    "summary": "RCG Dept Heads (May 4) — Janelle to spec out AI agent workflow for client communication",
+    "owner": "Janelle",
+    "client": "RCG Internal",
+    "priority": "High",
+    "category": "Internal Action Item",
+    "isOverdue": true,
+    "rawContext": "Draft AI agent concept for client comms + month-end summaries — assigned to Janelle",
+    "createdAt": "2026-05-04T00:00:00Z"
+  },
+  {
+    "id": "f-dh-0504-04",
+    "source": "Fathom",
+    "actionItem": "Compile DA learnings overview; send to Maria",
+    "summary": "RCG Dept Heads (May 4) — Janelle to document key DA learnings for Maria's review",
+    "owner": "Janelle",
+    "client": "Dealership Accelerator",
+    "priority": "Medium",
+    "category": "Internal Action Item",
+    "isOverdue": true,
+    "rawContext": "Compile DA learnings overview; send to Maria — assigned to Janelle",
+    "createdAt": "2026-05-04T00:00:00Z"
+  },
+  {
+    "id": "f-dh-0504-05",
+    "source": "Fathom",
+    "actionItem": "Email Alex re: M&A AR; send invoice",
+    "summary": "RCG Dept Heads (May 4) — M&A accounts receivable invoice needs to go out",
+    "owner": "Rick",
+    "client": "Alex / M&A",
+    "priority": "High",
+    "category": "Client Response Needed",
+    "isOverdue": true,
+    "rawContext": "Email Alex re: M&A AR; send invoice — assigned to Rick",
+    "createdAt": "2026-05-04T00:00:00Z"
+  },
+  {
+    "id": "f-dh-0504-06",
+    "source": "Fathom",
+    "actionItem": "Rewrite admin-access SOP; send to Maria",
+    "summary": "RCG Dept Heads (May 4) — admin access standard operating procedure needs update",
+    "owner": "Rick",
+    "client": "RCG Internal",
+    "priority": "Medium",
+    "category": "Internal Action Item",
+    "isOverdue": true,
+    "rawContext": "Rewrite admin-access SOP; send to Maria — assigned to Rick",
+    "createdAt": "2026-05-04T00:00:00Z"
+  }
+]
