@@ -1,10 +1,18 @@
-import { readFileSync, writeFileSync, readdirSync, existsSync, unlinkSync } from "fs";
+import { readFileSync, writeFileSync, readdirSync, existsSync, unlinkSync, mkdirSync } from "fs";
 import { join } from "path";
 import { ActionItem } from "./types";
 
 const DATA_DIR = join(process.cwd(), "data");
 const PENDING_DIR = join(DATA_DIR, "pending");
 const RESULTS_DIR = join(DATA_DIR, "results");
+
+// Ensure all data directories exist on startup — prevents crashes if folders were deleted
+function ensureDirs() {
+  [DATA_DIR, PENDING_DIR, RESULTS_DIR, join(DATA_DIR, "sweep-requests")].forEach((d) => {
+    if (!existsSync(d)) mkdirSync(d, { recursive: true });
+  });
+}
+ensureDirs();
 
 export interface PendingRequest {
   id: string;
