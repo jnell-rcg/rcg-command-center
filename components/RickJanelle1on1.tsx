@@ -183,7 +183,7 @@ export function RickJanelle1on1() {
                     <button
                       onClick={() => setConfirmDelete(meeting.id)}
                       aria-label="Hide meeting"
-                      className="opacity-0 group-hover/meeting:opacity-100 rounded p-1 text-slate-300 hover:bg-red-50 hover:text-red-400 transition"
+                      className="rounded p-1 text-slate-300 hover:bg-red-50 hover:text-red-400 transition"
                     >
                       <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

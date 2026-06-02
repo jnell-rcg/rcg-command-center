@@ -9,8 +9,11 @@ import {
   togglePin,
 } from "@/lib/archiveStore";
 import { applyOwnerOverrides, getOwnerOverrides, setOwnerOverride } from "@/lib/ownerStore";
+import { applyOrder, clearWeekOrder, getWeekOrders, saveWeekOrder } from "@/lib/orderStore";
+import { applyItemEdits, getItemEdits, ItemEdits, saveItemEdit } from "@/lib/editStore";
 import { ActionItem, Owner } from "@/lib/types";
-import { sortByPriority } from "@/lib/utils";
+import { cn, sortByPriority } from "@/lib/utils";
+import { format } from "date-fns";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActionItemCard } from "./ActionItemCard";
 import { FilterBar, Filters } from "./FilterBar";
@@ -19,11 +22,13 @@ import { WhatsAppUpload } from "./WhatsAppUpload";
 import { ManualInput } from "./ManualInput";
 import { RickJanelle1on1 } from "./RickJanelle1on1";
 import { TodaysFocus } from "./TodaysFocus";
+import { FinanceAgent } from "./FinanceAgent";
 
 const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
 const POLL_INTERVAL_MS = 4_000;
 
-type View = "active" | "project";
+type Section = "ops" | "finance";
+type View = "active" | "project" | "week";
 type StatusFilter = "active" | "completed";
 
 const DEFAULT_FILTERS: Filters = {
@@ -45,6 +50,8 @@ export function Dashboard() {
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   const [doneItems, setDoneItems] = useState<ArchivedItem[]>([]);
   const [ownerOverrides, setOwnerOverrides] = useState<Record<string, Owner>>({});
+  const [itemEdits, setItemEdits] = useState<Record<string, ItemEdits>>({});
+  const [section, setSection] = useState<Section>("ops");
   const [rcgInternalOpen, setRcgInternalOpen] = useState(true);
   const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -54,6 +61,7 @@ export function Dashboard() {
     setPinnedIds(getPinnedIds());
     setDoneItems(getDoneThisWeek());
     setOwnerOverrides(getOwnerOverrides());
+    setItemEdits(getItemEdits());
   }, []);
 
   const loadResults = useCallback(async () => {
@@ -63,12 +71,17 @@ export function Dashboard() {
       const data = await res.json();
       const archivedIds = getArchivedIds();
       const overrides = getOwnerOverrides();
-      const active = applyOwnerOverrides(
-        (data.items ?? []).filter((i: ActionItem) => !archivedIds.has(i.id)),
-        overrides
+      const edits = getItemEdits();
+      const active = applyItemEdits(
+        applyOwnerOverrides(
+          (data.items ?? []).filter((i: ActionItem) => !archivedIds.has(i.id)),
+          overrides
+        ),
+        edits
       );
       setItems(sortByPriority(active));
       setOwnerOverrides(overrides);
+      setItemEdits(edits);
       setLastRefresh(new Date());
     } finally {
       setLoading(false);
@@ -138,6 +151,13 @@ export function Dashboard() {
     setItems((prev) => applyOwnerOverrides(prev, overrides));
   }
 
+  function handleEdit(id: string, edits: Partial<ActionItem>) {
+    saveItemEdit(id, edits as ItemEdits);
+    const allEdits = getItemEdits();
+    setItemEdits(allEdits);
+    setItems((prev) => applyItemEdits(prev, allEdits) as ActionItem[]);
+  }
+
   const clients = useMemo(
     () => [...new Set(items.map((i) => i.client).filter(Boolean))].sort() as string[],
     [items]
@@ -201,8 +221,50 @@ export function Dashboard() {
     return [...flagged, ...rest];
   }, [filtered, flaggedClients]);
 
+  // Group items by calendar week (Monday start), newest first
+  const byWeek = useMemo(() => {
+    const groups = new Map<string, ActionItem[]>();
+    filtered.forEach((item) => {
+      const d = new Date(item.createdAt);
+      const day = d.getDay(); // 0=Sun
+      const daysToMonday = day === 0 ? -6 : 1 - day;
+      const monday = new Date(d);
+      monday.setDate(d.getDate() + daysToMonday);
+      monday.setHours(0, 0, 0, 0);
+      const key = monday.toISOString().slice(0, 10);
+      const g = groups.get(key) ?? [];
+      g.push(item);
+      groups.set(key, g);
+    });
+    return [...groups.entries()]
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([key, weekItems]) => ({ key, items: sortByPriority(weekItems) }));
+  }, [filtered]);
+
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
+      {/* Section tabs */}
+      <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm w-fit">
+        <button
+          onClick={() => setSection("ops")}
+          className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            section === "ops" ? "bg-[#0d2b2a] text-white shadow-sm" : "text-slate-500 hover:bg-slate-100"
+          }`}
+        >
+          Ops Tower
+        </button>
+        <button
+          onClick={() => setSection("finance")}
+          className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            section === "finance" ? "bg-[#0d2b2a] text-white shadow-sm" : "text-slate-500 hover:bg-slate-100"
+          }`}
+        >
+          Finance Agent
+        </button>
+      </div>
+
+      {section === "finance" && <FinanceAgent />}
+      {section === "ops" && <>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-500">
@@ -246,6 +308,7 @@ export function Dashboard() {
         onArchive={handleArchive}
         onPin={handlePin}
         onOwnerChange={handleOwnerChange}
+        onEdit={handleEdit}
       />
 
       {/* Recurring patterns banner */}
@@ -324,31 +387,46 @@ export function Dashboard() {
             ))}
           </div>
 
-          {/* By Owner / Active Projects — only in active view */}
+          {/* By Owner / Active Projects / By Week — only in active view */}
           {status === "active" && (
             <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
-              {(["active", "project"] as View[]).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setView(v)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                    view === v
-                      ? "bg-slate-700 text-white shadow-sm"
-                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                  }`}
-                >
-                  {v === "active" ? "By Owner" : (
-                    <span className="flex items-center gap-1.5">
-                      Active Projects
-                      {flaggedClients.size > 0 && (
-                        <span className="rounded-full bg-violet-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                          {flaggedClients.size}
-                        </span>
-                      )}
+              <button
+                onClick={() => setView("active")}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  view === "active"
+                    ? "bg-slate-700 text-white shadow-sm"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                }`}
+              >
+                By Owner
+              </button>
+              <button
+                onClick={() => setView("project")}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  view === "project"
+                    ? "bg-slate-700 text-white shadow-sm"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  Active Projects
+                  {flaggedClients.size > 0 && (
+                    <span className="rounded-full bg-violet-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                      {flaggedClients.size}
                     </span>
                   )}
-                </button>
-              ))}
+                </span>
+              </button>
+              <button
+                onClick={() => setView("week")}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  view === "week"
+                    ? "bg-orange-500 text-white shadow-sm"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                }`}
+              >
+                By Week
+              </button>
             </div>
           )}
         </div>
@@ -370,7 +448,7 @@ export function Dashboard() {
 
       {/* ─── RCG INTERNAL DEDICATED SYNC ─── */}
       {status === "active" && (() => {
-        const rcgItems = filtered.filter((i) => i.client === "RCG Internal");
+        const rcgItems = filtered.filter((i) => i.client === "RCG Internal" && !pinnedIds.has(i.id));
         if (rcgItems.length === 0) return null;
         return (
           <div className="rounded-xl border-2 border-teal-200 bg-teal-50/40 overflow-hidden">
@@ -404,6 +482,7 @@ export function Dashboard() {
                     onArchive={handleArchive}
                     onPin={handlePin}
                     onOwnerChange={handleOwnerChange}
+                    onEdit={handleEdit}
                     isPinned={pinnedIds.has(item.id)}
                   />
                 ))}
@@ -459,6 +538,7 @@ export function Dashboard() {
                 onArchive={handleArchive}
                 onPin={handlePin}
                 onOwnerChange={handleOwnerChange}
+                onEdit={handleEdit}
               />
               <OwnerSection
                 label="Rick's Items"
@@ -468,6 +548,7 @@ export function Dashboard() {
                 onArchive={handleArchive}
                 onPin={handlePin}
                 onOwnerChange={handleOwnerChange}
+                onEdit={handleEdit}
               />
               <OwnerSection
                 label="Zack's Items"
@@ -477,6 +558,7 @@ export function Dashboard() {
                 onArchive={handleArchive}
                 onPin={handlePin}
                 onOwnerChange={handleOwnerChange}
+                onEdit={handleEdit}
               />
               <OwnerSection
                 label="Unassigned"
@@ -486,7 +568,35 @@ export function Dashboard() {
                 onArchive={handleArchive}
                 onPin={handlePin}
                 onOwnerChange={handleOwnerChange}
+                onEdit={handleEdit}
               />
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ─── ACTIVE: BY WEEK ─── */}
+      {status === "active" && view === "week" && (
+        <>
+          {byWeek.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <div className="space-y-4">
+              <p className="text-xs text-slate-500">
+                Items grouped by the week they were logged. <span className="font-medium text-slate-600">Drag the grip handle</span> on any card to reorder — your order is saved automatically.
+              </p>
+              {byWeek.map(({ key, items: weekItems }) => (
+                <WeekSection
+                  key={key}
+                  weekKey={key}
+                  initialItems={weekItems}
+                  pinnedIds={pinnedIds}
+                  onArchive={handleArchive}
+                  onPin={handlePin}
+                  onOwnerChange={handleOwnerChange}
+                  onEdit={handleEdit}
+                />
+              ))}
             </div>
           )}
         </>
@@ -538,6 +648,7 @@ export function Dashboard() {
                           onArchive={handleArchive}
                           onPin={handlePin}
                           onOwnerChange={handleOwnerChange}
+                          onEdit={handleEdit}
                           isPinned={pinnedIds.has(item.id)}
                         />
                       ))}
@@ -549,6 +660,7 @@ export function Dashboard() {
           )}
         </>
       )}
+      </>}
     </div>
   );
 }
@@ -563,6 +675,7 @@ function OwnerSection({
   onArchive,
   onPin,
   onOwnerChange,
+  onEdit,
 }: {
   label: string;
   color: string;
@@ -571,6 +684,7 @@ function OwnerSection({
   onArchive: (id: string) => void;
   onPin: (id: string) => void;
   onOwnerChange: (id: string, owner: Owner) => void;
+  onEdit: (id: string, edits: Partial<ActionItem>) => void;
 }) {
   if (items.length === 0) return null;
   return (
@@ -588,6 +702,7 @@ function OwnerSection({
             onArchive={onArchive}
             onPin={onPin}
             onOwnerChange={onOwnerChange}
+            onEdit={onEdit}
             isPinned={pinnedIds.has(item.id)}
           />
         ))}
@@ -657,6 +772,175 @@ function SweepButton({
         {done ? "✓ Done!" : loading ? "Sweeping…" : label}
       </button>
       {error && <p className="text-[10px] text-red-500">{error}</p>}
+    </div>
+  );
+}
+
+// ─── Week Section (drag-to-reorder) ───────────────────────────────────────────
+
+interface WeekSectionProps {
+  weekKey: string;           // YYYY-MM-DD of that Monday
+  initialItems: ActionItem[];
+  pinnedIds: Set<string>;
+  onArchive: (id: string) => void;
+  onPin: (id: string) => void;
+  onOwnerChange: (id: string, owner: Owner) => void;
+  onEdit: (id: string, edits: Partial<ActionItem>) => void;
+}
+
+function getWeekMeta(weekKey: string): { title: string; subtitle: string } {
+  const monday = new Date(weekKey + "T00:00:00");
+  const sunday = new Date(monday);
+  sunday.setDate(sunday.getDate() + 6);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const thisMon = new Date(today);
+  const dow = today.getDay();
+  thisMon.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+
+  const diffWeeks = Math.round((monday.getTime() - thisMon.getTime()) / (7 * 24 * 60 * 60 * 1000));
+
+  let title: string;
+  if (diffWeeks === 0) title = "This Week";
+  else if (diffWeeks === -1) title = "Last Week";
+  else title = format(monday, "MMM d") + " – " + format(sunday, "d");
+
+  const subtitle = format(monday, "MMM d") + " – " + format(sunday, "MMM d, yyyy");
+  return { title, subtitle };
+}
+
+function WeekSection({ weekKey, initialItems, pinnedIds, onArchive, onPin, onOwnerChange, onEdit }: WeekSectionProps) {
+  const [open, setOpen] = useState(true);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+  const [localItems, setLocalItems] = useState<ActionItem[]>(() => {
+    const saved = getWeekOrders()[weekKey];
+    return saved?.length ? applyOrder(initialItems, saved) : initialItems;
+  });
+
+  // Sync when parent items change (archive, owner reassign) while preserving custom order
+  useEffect(() => {
+    const saved = getWeekOrders()[weekKey];
+    if (saved?.length) {
+      setLocalItems(applyOrder(initialItems, saved));
+    } else {
+      setLocalItems(initialItems);
+    }
+  }, [initialItems, weekKey]);
+
+  function handleDragStart(e: React.DragEvent, id: string) {
+    setDragId(id);
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleDragOver(e: React.DragEvent, id: string) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (id !== dragOverId) setDragOverId(id);
+  }
+
+  function handleDrop(e: React.DragEvent, targetId: string) {
+    e.preventDefault();
+    if (!dragId || dragId === targetId) { reset(); return; }
+    const from = localItems.findIndex((i) => i.id === dragId);
+    const to = localItems.findIndex((i) => i.id === targetId);
+    if (from === -1 || to === -1) { reset(); return; }
+    const next = [...localItems];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setLocalItems(next);
+    saveWeekOrder(weekKey, next.map((i) => i.id));
+    reset();
+  }
+
+  function reset() { setDragId(null); setDragOverId(null); }
+
+  function resetOrder() {
+    clearWeekOrder(weekKey);
+    setLocalItems(sortByPriority(initialItems));
+  }
+
+  const { title, subtitle } = getWeekMeta(weekKey);
+  const highCount = localItems.filter((i) => i.priority === "High").length;
+  const overdueCount = localItems.filter((i) => i.isOverdue).length;
+  const savedOrder = getWeekOrders()[weekKey];
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+      {/* Section header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+        <button onClick={() => setOpen((v) => !v)} className="flex items-center gap-2.5 flex-wrap text-left flex-1 min-w-0">
+          <span className="text-sm font-bold text-slate-800">{title}</span>
+          <span className="text-[10px] text-slate-400">{subtitle}</span>
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+            {localItems.length} {localItems.length === 1 ? "item" : "items"}
+          </span>
+          {highCount > 0 && (
+            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+              {highCount} High
+            </span>
+          )}
+          {overdueCount > 0 && (
+            <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">
+              {overdueCount} Overdue
+            </span>
+          )}
+        </button>
+        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+          {savedOrder?.length && (
+            <button
+              onClick={resetOrder}
+              className="text-[10px] text-slate-400 hover:text-orange-500 transition underline underline-offset-2"
+              title="Reset to priority order"
+            >
+              Reset order
+            </button>
+          )}
+          <button onClick={() => setOpen((v) => !v)}>
+            <svg
+              className={`h-4 w-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Items */}
+      {open && (
+        <div className="px-4 py-3 space-y-2">
+          {localItems.map((item) => (
+            <div
+              key={item.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, item.id)}
+              onDragOver={(e) => handleDragOver(e, item.id)}
+              onDrop={(e) => handleDrop(e, item.id)}
+              onDragEnd={reset}
+              className={cn(
+                "rounded-xl transition-all cursor-grab active:cursor-grabbing",
+                dragId === item.id && "opacity-40 scale-[0.99]",
+                dragOverId === item.id && dragId !== item.id
+                  ? "ring-2 ring-orange-400 ring-offset-1"
+                  : ""
+              )}
+            >
+              <ActionItemCard
+                item={item}
+                onArchive={onArchive}
+                onPin={onPin}
+                onOwnerChange={onOwnerChange}
+                onEdit={onEdit}
+                isPinned={pinnedIds.has(item.id)}
+                showDragHandle
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

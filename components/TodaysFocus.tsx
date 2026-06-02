@@ -9,9 +9,10 @@ interface Props {
   onArchive: (id: string) => void;
   onPin: (id: string) => void;
   onOwnerChange: (id: string, owner: Owner) => void;
+  onEdit?: (id: string, edits: Partial<ActionItem>) => void;
 }
 
-export function TodaysFocus({ items, pinnedIds, onArchive, onPin, onOwnerChange }: Props) {
+export function TodaysFocus({ items, pinnedIds, onArchive, onPin, onOwnerChange, onEdit }: Props) {
   const pinned = items.filter((i) => pinnedIds.has(i.id));
   if (pinned.length === 0) return null;
 
@@ -37,6 +38,7 @@ export function TodaysFocus({ items, pinnedIds, onArchive, onPin, onOwnerChange 
             onArchive={onArchive}
             onPin={onPin}
             onOwnerChange={onOwnerChange}
+            onEdit={onEdit}
             isPinned={true}
           />
         ))}

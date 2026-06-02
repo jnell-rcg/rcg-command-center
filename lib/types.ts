@@ -31,6 +31,7 @@ export interface ActionItem {
   dueDate?: string;       // ISO date string if mentioned
   isOverdue: boolean;
   rawContext?: string;    // snippet of source text for reference
+  notes?: string;         // research / reference notes (collapsible on card)
   createdAt: string;      // ISO timestamp
 }
 

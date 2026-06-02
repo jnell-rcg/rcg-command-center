@@ -39,7 +39,8 @@ export function readResult(id: string): ActionItem[] | null {
 
 export function readAllResults(): ActionItem[] {
   if (!existsSync(RESULTS_DIR)) return [];
-  return readdirSync(RESULTS_DIR)
+
+  const all = readdirSync(RESULTS_DIR)
     .filter((f) => f.endsWith(".json"))
     .flatMap((f) => {
       try {
@@ -48,6 +49,30 @@ export function readAllResults(): ActionItem[] {
         return [];
       }
     });
+
+  // Sort newest-first so we keep the most recent version of any duplicate
+  all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  // Pass 1: deduplicate by exact ID
+  const seenIds = new Set<string>();
+  const dedupedById = all.filter((item) => {
+    if (seenIds.has(item.id)) return false;
+    seenIds.add(item.id);
+    return true;
+  });
+
+  // Pass 2: deduplicate by normalized actionItem text (catches re-sweeps of the same meeting)
+  // Normalize: lowercase, strip non-alphanumeric except spaces, collapse whitespace
+  const normalize = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+
+  const seenText = new Set<string>();
+  return dedupedById.filter((item) => {
+    const key = normalize(item.actionItem);
+    if (seenText.has(key)) return false;
+    seenText.add(key);
+    return true;
+  });
 }
 
 export function listPending(): PendingRequest[] {
