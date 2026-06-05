@@ -1,5 +1,22 @@
 [
   {
+    "id": 152208778,
+    "title": "Janelle & Rick Gym Meeting",
+    "date": "2026-06-04",
+    "url": "https://fathom.video/calls/699104390",
+    "summary": "AI strategy shift: build proprietary platform to replace Sparklink and own all IP + QuickBooks integration. Finance Agent to be rebuilt to ingest Excel files directly. SmartFit transferred to Brandon due to client disrespect. New dept KPIs: on-time book closures (Maria), cash added (Zach), ad-hoc deliverables (Richard). RCG swag package discussed — tie $85k MRR All Hands bonus as first trigger event.",
+    "actionItems": [
+      { "text": "Ask Noah to lead Robin AI CFO server build (Cloudflare/DNS/API)", "owner": "Rick" },
+      { "text": "Update Finance Agent to accept Excel inputs + add budget lookup", "owner": "Janelle" },
+      { "text": "Cancel SmartFit review w/ Rob; email Maria; send CFO commentary", "owner": "Rick" },
+      { "text": "Schedule 1h Brandon handover for SmartFit file", "owner": "Rick" },
+      { "text": "Contact David re: Gusto owner draws for Max & Sawyer; confirm scope/fees", "owner": "Rick" },
+      { "text": "Refresh DAOps model before 9:00 CTO meeting", "owner": "Rick" },
+      { "text": "Design RCG swag package — leather notebook, tee, hat, pen, mug. Budget per person? ($75 / $150 / $200+). Tie launch to $85k MRR All Hands bonus milestone.", "owner": "Janelle" },
+      { "text": "Draft Rick's personal note to accompany swag package and spec sheet for vendor", "owner": "Janelle" }
+    ]
+  },
+  {
     "id": 148397241,
     "title": "Janelle & Rick Gym Meeting",
     "date": "2026-05-21",
