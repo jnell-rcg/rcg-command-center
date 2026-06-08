@@ -37,6 +37,18 @@ export function readResult(id: string): ActionItem[] | null {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
+// Stable ID: hash the normalized action item text so the same item always
+// gets the same ID across re-sweeps. This keeps localStorage archive/pin IDs
+// valid — archived items won't reappear after a Fathom refresh.
+function stableId(text: string): string {
+  const normalized = text.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  let hash = 0;
+  for (let i = 0; i < normalized.length; i++) {
+    hash = (Math.imul(31, hash) + normalized.charCodeAt(i)) >>> 0;
+  }
+  return `stable-${hash.toString(36)}`;
+}
+
 export function readAllResults(): ActionItem[] {
   if (!existsSync(RESULTS_DIR)) return [];
 
@@ -50,27 +62,22 @@ export function readAllResults(): ActionItem[] {
       }
     });
 
-  // Sort newest-first so we keep the most recent version of any duplicate
-  all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  // Normalise: replace each item's ID with a stable hash of its action text.
+  // Same action item text → same ID every time, so archived/pinned items stay
+  // matched even after a re-sweep generates a fresh UUID.
+  const normalised = all.map((item) => ({
+    ...item,
+    id: stableId(item.actionItem),
+  }));
 
-  // Pass 1: deduplicate by exact ID
+  // Sort oldest-first so we preserve the original createdAt timestamp when deduping
+  normalised.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+  // Deduplicate by stable ID — keep the oldest occurrence
   const seenIds = new Set<string>();
-  const dedupedById = all.filter((item) => {
+  return normalised.filter((item) => {
     if (seenIds.has(item.id)) return false;
     seenIds.add(item.id);
-    return true;
-  });
-
-  // Pass 2: deduplicate by normalized actionItem text (catches re-sweeps of the same meeting)
-  // Normalize: lowercase, strip non-alphanumeric except spaces, collapse whitespace
-  const normalize = (s: string) =>
-    s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
-
-  const seenText = new Set<string>();
-  return dedupedById.filter((item) => {
-    const key = normalize(item.actionItem);
-    if (seenText.has(key)) return false;
-    seenText.add(key);
     return true;
   });
 }
