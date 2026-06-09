@@ -165,6 +165,7 @@ export function Dashboard() {
 
   const filtered = useMemo(() => {
     return items.filter((item) => {
+      if (pinnedIds.has(item.id)) return false; // pinned items live only in Today's Focus
       if (filters.source !== "All" && item.source !== filters.source) return false;
       if (filters.category !== "All" && item.category !== filters.category) return false;
       if (filters.owner !== "All" && item.owner !== filters.owner) return false;
@@ -172,7 +173,7 @@ export function Dashboard() {
       if (filters.client && item.client !== filters.client) return false;
       return true;
     });
-  }, [items, filters]);
+  }, [items, filters, pinnedIds]);
 
   const counts = useMemo(
     () => ({
