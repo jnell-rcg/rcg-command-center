@@ -1,5 +1,19 @@
 [
   {
+    "id": 153174261,
+    "title": "Janelle & Rick",
+    "date": "2026-06-08",
+    "url": "https://fathom.video/calls/699783305",
+    "summary": "Alex account → strict retainer only (Rick does $5.5k–$7.5k upfront tasks, team handles support). AI CFO distinction: $100/mo diagnostic tool vs. full CFO service. Contracting overhaul to MSA + SOW. Noah QB meeting on hold pending compliance approval.",
+    "actionItems": [
+      { "text": "Email attorney re: MSA + SOW templates; send revised templates to Richard", "owner": "Rick" },
+      { "text": "Hold Noah QB meeting until compliance app approved; schedule immediately once greenlit", "owner": "Rick" },
+      { "text": "Coordinate Cloudflare DNS w/ Noah; keep Squarespace hosting", "owner": "Rick" },
+      { "text": "Research MSA + SOW contract software after attorney approves framework", "owner": "Janelle" },
+      { "text": "Update ops plan: remove decimals; review HopX driver w/ Rick", "owner": "Rick" }
+    ]
+  },
+  {
     "id": 152208778,
     "title": "Janelle & Rick Gym Meeting",
     "date": "2026-06-04",
@@ -14,6 +28,21 @@
       { "text": "Refresh DAOps model before 9:00 CTO meeting", "owner": "Rick" },
       { "text": "Design RCG swag package — leather notebook, tee, hat, pen, mug. Budget per person? ($75 / $150 / $200+). Tie launch to $85k MRR All Hands bonus milestone.", "owner": "Janelle" },
       { "text": "Draft Rick's personal note to accompany swag package and spec sheet for vendor", "owner": "Janelle" }
+    ]
+  },
+  {
+    "id": 149806297,
+    "title": "Janelle & Rick",
+    "date": "2026-05-27",
+    "url": "https://fathom.video/calls/689006339",
+    "summary": "M&A client payment enforcement ($19k AR, Jun 5 deadline). DA CEO advisory on COO performance + product strategy. AI CFO dashboard + Finance Agent integration. Marketing pivot to educational content/webinars.",
+    "actionItems": [
+      { "text": "Email Alex re: $19k AR — list active engagements + Jun 1/5 cutoff; CC Rick + Maria", "owner": "Rick" },
+      { "text": "Email Rob Darnborough + Strategic Coach group re: Jun 15 financial review", "owner": "Rick" },
+      { "text": "Email Allie re: Investify & Glimmer Health — confirm April books closed", "owner": "Rick" },
+      { "text": "Pull and send Jack (Cleek) updated IS report", "owner": "Rick" },
+      { "text": "Attempt DNS/Cloudflare switch on robyncg.com — flag risks to Rick before proceeding", "owner": "Janelle" },
+      { "text": "Ping Beth re: Keenan weekly 1:1 cadence — get recurring slot on Rick's calendar", "owner": "Janelle" }
     ]
   },
   {
