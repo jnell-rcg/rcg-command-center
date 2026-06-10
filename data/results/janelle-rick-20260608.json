@@ -34,5 +34,11 @@
     "summary": "Janelle & Rick 6/8 — Alex account shifted to strict retainer. Rick only does $5.5k–$7.5k upfront tasks. Team handles ongoing support.",
     "actionItem": "Research MSA + SOW contract software for RCG — evaluate after Rick's attorney approves new legal framework",
     "owner": "Janelle", "client": "RCG Internal", "priority": "Medium", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "tmp13", "source": "Fathom", "createdAt": "2026-06-08T00:13:00.000Z",
+    "summary": "Janelle & Rick 6/8 — end of call, connection dropped",
+    "actionItem": "⚠ CONFIRM WITH RICK — requested something not after 3pm Friday (Fathom didn't capture — your connection dropped at end of call). Ask Rick to clarify what meeting or task he requested.",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
   }
 ]
