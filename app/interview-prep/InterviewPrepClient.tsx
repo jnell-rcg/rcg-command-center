@@ -29,7 +29,7 @@ export default function InterviewPrepClient({
             <div className="leading-none">
               <div className="text-xl font-extrabold tracking-tight text-white">RCG</div>
               <div className="text-[10px] font-medium uppercase tracking-widest text-orange-400 mt-0.5">
-                Finance Agent
+                MEC Commentary Agent
               </div>
             </div>
           </div>
@@ -47,8 +47,8 @@ export default function InterviewPrepClient({
                 Copy Markdown
               </button>
             )}
-            <Link href="/" className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1.5 text-xs font-semibold text-white">Ops Tower</Link>
-            <Link href="/finance" className="rounded-md bg-orange-500 hover:bg-orange-600 transition px-3 py-1.5 text-xs font-semibold text-white">Finance Agent</Link>
+            <a href="/" className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1.5 text-xs font-semibold text-white">Ops Tower</a>
+            <a href="/finance" className="rounded-md bg-orange-500 hover:bg-orange-600 transition px-3 py-1.5 text-xs font-semibold text-white">MEC Commentary Agent</a>
           </div>
         </div>
       </header>

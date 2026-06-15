@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "RCG Finance Agent",
+  title: "RCG MEC Commentary Agent",
   description: "Month-end close narrative generator — Robyn Consulting Group",
 };
 
@@ -31,7 +31,7 @@ export default function FinancePage() {
             <div className="leading-none">
               <div className="text-xl font-extrabold tracking-tight text-white">RCG</div>
               <div className="text-[10px] font-medium uppercase tracking-widest text-orange-400 mt-0.5">
-                Finance Agent
+                MEC Commentary
               </div>
             </div>
           </div>

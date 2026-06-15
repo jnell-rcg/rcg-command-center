@@ -27,7 +27,7 @@ import { FinanceAgent } from "./FinanceAgent";
 const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
 const POLL_INTERVAL_MS = 4_000;
 
-type Section = "ops" | "finance";
+type Section = "ops" | "finance" | "forecasting";
 type View = "active" | "project" | "week";
 type StatusFilter = "active" | "completed";
 
@@ -260,11 +260,33 @@ export function Dashboard() {
             section === "finance" ? "bg-[#0d2b2a] text-white shadow-sm" : "text-slate-500 hover:bg-slate-100"
           }`}
         >
-          Finance Agent
+          MEC Commentary
+        </button>
+        <button
+          onClick={() => setSection("forecasting")}
+          className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            section === "forecasting" ? "bg-[#0d2b2a] text-white shadow-sm" : "text-slate-500 hover:bg-slate-100"
+          }`}
+        >
+          Forecasting
         </button>
       </div>
 
       {section === "finance" && <FinanceAgent />}
+      {section === "forecasting" && (
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
+          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-12 py-16 text-center max-w-md">
+            <div className="text-4xl mb-4">🚧</div>
+            <h2 className="text-xl font-extrabold text-slate-800 mb-2">Forecasting</h2>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Under construction. This module will generate forward projections in Rick's voice — revenue model, headcount schedule, and scenario planning.
+            </p>
+            <span className="mt-4 inline-block rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-600 uppercase tracking-wide">
+              Coming Soon
+            </span>
+          </div>
+        </div>
+      )}
       {section === "ops" && <>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

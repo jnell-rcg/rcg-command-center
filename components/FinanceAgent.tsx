@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -35,11 +35,22 @@ interface FormState {
   monthClosed: string;
   revenue: LineItem;
   grossProfit: LineItem;
+  grossMarginActualPct: string;
+  grossMarginBudgetPct: string;
   opex: LineItem;
   netIncome: LineItem;
+  netMarginActualPct: string;
+  netMarginBudgetPct: string;
   cashOnHand: string;
   monthlyOpex: string;
-  variances: Variance[]; // auto-promoted from income statement; user adds driver + options
+  cashRunway: string;
+  currentRatio: string;
+  accountsReceivable: string;
+  totalLiabilities: string;
+  payrollPctActual: string;
+  payrollPctBudget: string;
+  clientCount: string;
+  variances: Variance[];
   kpis: string;
   clientContext: string;
   toneNotes: string;
@@ -93,8 +104,8 @@ function calcVariance(actual: string, budget: string) {
   const pct = (v / b) * 100;
   const sign = v >= 0 ? "+" : "";
   return {
-    variance: `${sign}${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    variancePct: `${sign}${pct.toFixed(1)}`,
+    variance: `${sign}${Math.round(v).toLocaleString("en-US")}`,
+    variancePct: `${sign}${Math.round(pct)}`,
     varNum: v,
     pctNum: pct,
   };
@@ -104,7 +115,7 @@ function calcRunway(cashOnHand: string, monthlyOpex: string) {
   const cash = parseFloat(cashOnHand.replace(/,/g, "")) || 0;
   const opex = parseFloat(monthlyOpex.replace(/,/g, "")) || 0;
   if (!opex) return "—";
-  return (cash / opex).toFixed(1);
+  return Math.round(cash / opex).toString();
 }
 
 // Auto-promote income statement lines that cross Rick's threshold
@@ -167,21 +178,39 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 function Field({
   label,
   hint,
+  required,
+  filled,
   children,
 }: {
   label: string;
   hint?: string;
+  required?: boolean;
+  filled?: boolean;
   children: React.ReactNode;
 }) {
+  const highlight = required && !filled;
   return (
-    <div>
-      <label className="block text-xs font-semibold text-slate-600 mb-1">
-        {label}
-        {hint && <span className="font-normal text-slate-400 ml-1">({hint})</span>}
+    <div className={highlight ? "rounded-lg border-2 border-amber-400 bg-amber-50 p-2.5 -mx-1" : ""}>
+      <label className="block text-xs font-semibold mb-1 flex items-center gap-1.5">
+        <span className={highlight ? "text-amber-800" : "text-slate-600"}>{label}</span>
+        {highlight && (
+          <span className="rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+            Required
+          </span>
+        )}
+        {hint && <span className="font-normal text-slate-400 ml-0.5">({hint})</span>}
       </label>
       {children}
     </div>
   );
+}
+
+/** Format a raw number string as $1,234.56 — always 2 decimal places, no float noise */
+function fmt(raw: string | null | undefined): string {
+  if (!raw) return "—";
+  const n = parseFloat(raw);
+  if (isNaN(n)) return "—";
+  return "$" + Math.round(n).toLocaleString("en-US");
 }
 
 const INPUT =
@@ -271,10 +300,21 @@ const DEFAULT_STATE: FormState = {
   monthClosed: "",
   revenue: emptyLine(),
   grossProfit: emptyLine(),
+  grossMarginActualPct: "",
+  grossMarginBudgetPct: "",
   opex: emptyLine(),
   netIncome: emptyLine(),
+  netMarginActualPct: "",
+  netMarginBudgetPct: "",
   cashOnHand: "",
   monthlyOpex: "",
+  cashRunway: "",
+  currentRatio: "",
+  accountsReceivable: "",
+  totalLiabilities: "",
+  payrollPctActual: "",
+  payrollPctBudget: "",
+  clientCount: "",
   variances: [],
   kpis: "",
   clientContext: "",
@@ -317,6 +357,18 @@ export function FinanceAgent() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showSaveClient, setShowSaveClient] = useState(false);
+
+  // Excel upload state
+  const [parseLoading, setParseLoading] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [parsedFileName, setParsedFileName] = useState<string | null>(null);
+  const [parsedSheetNames, setParsedSheetNames] = useState<string[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Per-variance driver generation state
+  const [driverLoading, setDriverLoading] = useState<Record<number, boolean>>({});
+  const [driverError,   setDriverError]   = useState<Record<number, string>>({});
 
   // Load roster from localStorage on mount
   useEffect(() => {
@@ -430,6 +482,138 @@ export function FinanceAgent() {
     setForm((f) => ({ ...f, variances: f.variances.filter((_, idx) => idx !== i) }));
   };
 
+  const handleExcelFile = useCallback(async (file: File) => {
+    if (!file) return;
+    setParseLoading(true);
+    setParseError(null);
+    setParsedFileName(null);
+
+    try {
+      // Send the file directly to the parser — no Claude needed for extraction
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/parse-financials", {
+        method: "POST",
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+
+      const d = json.data;
+
+      // Auto-populate form with extracted data
+      setForm((f) => ({
+        ...f,
+        clientName:          d.clientName          ?? f.clientName,
+        monthClosed:         d.monthClosed         ?? f.monthClosed,
+        cashOnHand:          d.cashOnHand          ?? f.cashOnHand,
+        monthlyOpex:         d.monthlyOpex         ?? f.monthlyOpex,
+        cashRunway:          d.cashRunway          ?? f.cashRunway,
+        currentRatio:        d.currentRatio        ?? f.currentRatio,
+        accountsReceivable:  d.accountsReceivable  ?? f.accountsReceivable,
+        totalLiabilities:    d.totalLiabilities    ?? f.totalLiabilities,
+        payrollPctActual:    d.payrollPctActual    ?? f.payrollPctActual,
+        payrollPctBudget:    d.payrollPctBudget    ?? f.payrollPctBudget,
+        clientCount:         d.clientCount         ?? f.clientCount,
+        grossMarginActualPct: d.grossMarginActualPct ?? f.grossMarginActualPct,
+        grossMarginBudgetPct: d.grossMarginBudgetPct ?? f.grossMarginBudgetPct,
+        netMarginActualPct:  d.netMarginActualPct  ?? f.netMarginActualPct,
+        netMarginBudgetPct:  d.netMarginBudgetPct  ?? f.netMarginBudgetPct,
+        revenue: {
+          actual: d.revenue?.actual ? String(Math.round(Number(d.revenue.actual))) : f.revenue.actual,
+          budget: d.revenue?.budget ? String(Math.round(Number(d.revenue.budget))) : f.revenue.budget,
+        },
+        grossProfit: {
+          actual: d.grossProfit?.actual ? String(Math.round(Number(d.grossProfit.actual))) : f.grossProfit.actual,
+          budget: d.grossProfit?.budget ? String(Math.round(Number(d.grossProfit.budget))) : f.grossProfit.budget,
+        },
+        opex: {
+          actual: d.opex?.actual ? String(Math.round(Number(d.opex.actual))) : f.opex.actual,
+          budget: d.opex?.budget ? String(Math.round(Number(d.opex.budget))) : f.opex.budget,
+        },
+        netIncome: {
+          actual: d.netIncome?.actual ? String(Math.round(Number(d.netIncome.actual))) : f.netIncome.actual,
+          budget: d.netIncome?.budget ? String(Math.round(Number(d.netIncome.budget))) : f.netIncome.budget,
+        },
+        kpis: d.kpisRaw
+          ? [
+              d.kpisRaw,
+              d.grossMarginActualPct   ? `Gross Margin: ${d.grossMarginActualPct} (Plan: ${d.grossMarginBudgetPct ?? "—"})` : null,
+              d.netMarginActualPct     ? `Net Margin: ${d.netMarginActualPct} (Plan: ${d.netMarginBudgetPct ?? "—"})` : null,
+              d.payrollPctActual       ? `Payroll % of Revenue: ${d.payrollPctActual} (Plan: ${d.payrollPctBudget ?? "—"})` : null,
+              d.clientCount            ? `Client Count: ${d.clientCount}` : null,
+              d.currentRatio           ? `Current Ratio: ${d.currentRatio}` : null,
+              d.accountsReceivable     ? `Accounts Receivable: $${Math.round(Number(d.accountsReceivable)).toLocaleString()}` : null,
+              d.totalLiabilities       ? `Total Liabilities: $${Math.round(Number(d.totalLiabilities)).toLocaleString()}` : null,
+              d.cashRunway             ? `Cash Runway: ${d.cashRunway} months` : null,
+            ].filter(Boolean).join("\n")
+          : f.kpis,
+        // Merge in any sub-account variances Claude found
+        variances: [
+          ...f.variances,
+          ...(d.additionalVariances ?? []).map((v: { account: string; actual: string; budget: string; variancePct?: string; driver?: string }) => ({
+            account: v.account,
+            actual:  v.actual  ? String(Math.round(Number(v.actual)))  : "",
+            budget:  v.budget  ? String(Math.round(Number(v.budget)))  : "",
+            driver:  v.driver  ?? "",
+            options: "",
+          })),
+        ],
+      }));
+
+      setParsedFileName(file.name);
+      setParsedSheetNames(json.sheetNames ?? []);
+    } catch (err) {
+      setParseError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setParseLoading(false);
+    }
+  }, []);
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleExcelFile(file);
+    // Reset input so same file can be re-uploaded
+    e.target.value = "";
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleExcelFile(file);
+  };
+
+  const handleGenerateDrivers = async (i: number) => {
+    const v = form.variances[i];
+    setDriverLoading((d) => ({ ...d, [i]: true }));
+    setDriverError((d) => ({ ...d, [i]: "" }));
+    try {
+      const { variance, variancePct } = calcVariance(v.actual, v.budget);
+      const res = await fetch("/api/generate-drivers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          account:       v.account,
+          actual:        v.actual,
+          budget:        v.budget,
+          variancePct:   `${variance} (${variancePct}%)`,
+          industry:      form.industry,
+          clientContext: form.clientContext,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      updateVariance(i, { driver: data.driver, options: data.options });
+    } catch (err) {
+      setDriverError((d) => ({ ...d, [i]: err instanceof Error ? err.message : String(err) }));
+    } finally {
+      setDriverLoading((d) => ({ ...d, [i]: false }));
+    }
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     setOutput(null);
@@ -449,11 +633,21 @@ export function FinanceAgent() {
         monthClosed: form.monthClosed,
         revenue: buildLine(form.revenue),
         grossProfit: buildLine(form.grossProfit),
+        grossMarginActualPct: form.grossMarginActualPct,
+        grossMarginBudgetPct: form.grossMarginBudgetPct,
         opex: buildLine(form.opex),
         netIncome: buildLine(form.netIncome),
+        netMarginActualPct: form.netMarginActualPct,
+        netMarginBudgetPct: form.netMarginBudgetPct,
         cashOnHand: form.cashOnHand,
         monthlyOpex: form.monthlyOpex,
         runway,
+        currentRatio: form.currentRatio,
+        accountsReceivable: form.accountsReceivable,
+        totalLiabilities: form.totalLiabilities,
+        payrollPctActual: form.payrollPctActual,
+        payrollPctBudget: form.payrollPctBudget,
+        clientCount: form.clientCount,
         variances: form.variances
           .filter((v) => v.account.trim())
           .map((v) => {
@@ -513,9 +707,9 @@ export function FinanceAgent() {
       {/* Page header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Finance Agent</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">MEC Commentary Agent</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            Pick a client, enter close numbers, generate the email.
+            Upload the ops plan → fill in highlighted fields → generate.
           </p>
         </div>
         <button
@@ -529,6 +723,91 @@ export function FinanceAgent() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_400px]">
         {/* ── LEFT: Input Form ─────────────────────────────────────────────── */}
         <div className="space-y-5">
+
+          {/* ── 0. Excel Upload ──────────────────────────────────────────── */}
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
+            <SectionHeader>Upload Close File</SectionHeader>
+
+            {/* Drop zone */}
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`relative flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed cursor-pointer transition px-6 py-8 ${
+                dragOver
+                  ? "border-teal-500 bg-teal-50"
+                  : parseLoading
+                  ? "border-slate-200 bg-slate-50 cursor-wait"
+                  : parsedFileName
+                  ? "border-emerald-300 bg-emerald-50"
+                  : "border-slate-200 bg-slate-50 hover:border-teal-400 hover:bg-teal-50/40"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                onChange={handleFileInput}
+              />
+
+              {parseLoading ? (
+                <>
+                  <svg className="h-8 w-8 animate-spin text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                  </svg>
+                  <p className="text-sm font-semibold text-teal-700">Reading the file…</p>
+                  <p className="text-xs text-slate-400">Claude is pulling the numbers</p>
+                </>
+              ) : parsedFileName ? (
+                <>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+                    <svg className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-semibold text-emerald-700">Numbers loaded</p>
+                  <p className="text-xs text-slate-500 truncate max-w-[200px]">{parsedFileName}</p>
+                  <p className="text-[10px] text-slate-400">Click or drop a new file to replace</p>
+                </>
+              ) : (
+                <>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+                    <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-600">Drop the close file here</p>
+                  <p className="text-xs text-slate-400">or click to browse — .xlsx, .xls, .csv</p>
+                  <p className="text-[10px] text-slate-300 mt-1">Upload the full ops plan — agent reads the MBR tab automatically</p>
+                </>
+              )}
+            </div>
+
+            {parseError && (
+              <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+                <p className="text-xs font-bold text-red-600 mb-0.5">Could not read file</p>
+                <p className="text-xs text-red-500">{parseError}</p>
+              </div>
+            )}
+
+            {parsedFileName && !parseLoading && (
+              form.revenue.actual ? (
+                <p className="text-[10px] text-slate-400 text-center">
+                  Numbers loaded — review below, then fill in context and generate.
+                </p>
+              ) : (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-center">
+                  <p className="text-xs font-semibold text-amber-700">No income statement data found in this file.</p>
+                  <p className="text-[10px] text-amber-600 mt-0.5">
+                    Tabs found: {parsedSheetNames.join(", ") || "none"}
+                  </p>
+                  <p className="text-[10px] text-amber-500 mt-0.5">The parser looks for a tab named MBR, P&L, IS, Financials, or Budget vs Actual.</p>
+                </div>
+              )
+            )}
+          </div>
 
           {/* ── 1. Client Roster ─────────────────────────────────────────── */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
@@ -556,16 +835,16 @@ export function FinanceAgent() {
               <Field label="Client Name">
                 <input
                   type="text"
-                  placeholder="SealX"
+                  placeholder="Auto-filled from file"
                   value={form.clientName}
                   onChange={(e) => setForm((f) => ({ ...f, clientName: e.target.value, clientId: "" }))}
                   className={INPUT}
                 />
               </Field>
-              <Field label="Contact First Name" hint="salutation">
+              <Field label="Contact First Name" hint="salutation" required filled={!!form.contactName}>
                 <input
                   type="text"
-                  placeholder="Alex"
+                  placeholder="e.g. Alex"
                   value={form.contactName}
                   onChange={(e) => setForm((f) => ({ ...f, contactName: e.target.value }))}
                   className={INPUT}
@@ -574,7 +853,7 @@ export function FinanceAgent() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Industry">
+              <Field label="Industry" required filled={!!form.industry}>
                 <select
                   value={form.industry}
                   onChange={(e) => {
@@ -605,7 +884,7 @@ export function FinanceAgent() {
             </div>
 
             {/* Format */}
-            <Field label="Format">
+            <Field label="Format" required filled={!!form.format}>
               <div className="grid grid-cols-3 gap-2 mt-1">
                 {FORMAT_OPTIONS.map((opt) => (
                   <button
@@ -667,63 +946,132 @@ export function FinanceAgent() {
             </div>
           </div>
 
-          {/* ── 2. Income Statement ──────────────────────────────────────── */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
-            <SectionHeader>Income Statement</SectionHeader>
-            <p className="text-[10px] text-slate-400 -mt-1 mb-2">
-              Raw numbers, no $ needed. ⚑ means Rick&apos;s threshold is crossed — those lines auto-populate below.
-            </p>
-            <LineItemRow label="Revenue" value={form.revenue} onChange={(v) => setForm((f) => ({ ...f, revenue: v }))} />
-            <LineItemRow label="Gross Profit" value={form.grossProfit} onChange={(v) => setForm((f) => ({ ...f, grossProfit: v }))} />
-            <LineItemRow label="OpEx" value={form.opex} onChange={(v) => setForm((f) => ({ ...f, opex: v }))} />
-            <LineItemRow label="Net Income" value={form.netIncome} onChange={(v) => setForm((f) => ({ ...f, netIncome: v }))} />
-          </div>
-
-          {/* ── 3. Cash ──────────────────────────────────────────────────── */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-            <SectionHeader>Cash Position</SectionHeader>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Cash on Hand ($)">
-                <input
-                  type="text"
-                  placeholder="250000"
-                  value={form.cashOnHand}
-                  onChange={(e) => setForm((f) => ({ ...f, cashOnHand: e.target.value }))}
-                  className={INPUT}
-                />
-              </Field>
-              <Field label="Monthly OpEx Avg ($)">
-                <input
-                  type="text"
-                  placeholder="65000"
-                  value={form.monthlyOpex}
-                  onChange={(e) => setForm((f) => ({ ...f, monthlyOpex: e.target.value }))}
-                  className={INPUT}
-                />
-              </Field>
+          {/* ── 2. Income Statement (read-only — populated from Excel) ──── */}
+          {parsedFileName ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
+              <SectionHeader>Income Statement</SectionHeader>
+              <p className="text-[10px] text-slate-400 -mt-1 mb-1">
+                Pulled from <span className="font-medium text-slate-500">{parsedFileName}</span>. ⚑ = crosses Rick&apos;s flag threshold.
+              </p>
+              {[
+                { label: "Revenue",      value: form.revenue },
+                { label: "Gross Profit", value: form.grossProfit },
+                { label: "OpEx",         value: form.opex },
+                { label: "Net Income",   value: form.netIncome },
+              ].map(({ label, value }) => {
+                const { variance, variancePct, varNum, pctNum } = calcVariance(value.actual, value.budget);
+                const isNeg   = varNum < 0 && variance !== "—";
+                const isPos   = varNum > 0 && variance !== "—";
+                const flags   = Math.abs(varNum) > 10000 && Math.abs(pctNum) >= 15;
+                const hasData = value.actual || value.budget;
+                return (
+                  <div key={label} className={`grid grid-cols-[110px_1fr_1fr_auto] items-center gap-2 rounded-lg px-3 py-2 ${flags ? "bg-orange-50 border border-orange-100" : "bg-slate-50"}`}>
+                    <span className="text-xs font-semibold text-slate-600 flex items-center gap-1">
+                      {label}
+                      {flags && <span className="text-orange-500 text-[10px]" title="Exceeds ±15% AND >$10K">⚑</span>}
+                    </span>
+                    <div>
+                      <span className="block text-[10px] text-slate-400 mb-0.5">Actual</span>
+                      <span className={`text-sm font-semibold ${hasData ? "text-slate-800" : "text-slate-300"}`}>
+                        {hasData ? fmt(value.actual) : "—"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] text-slate-400 mb-0.5">Budget</span>
+                      <span className={`text-sm font-semibold ${value.budget ? "text-slate-800" : "text-slate-300"}`}>
+                        {fmt(value.budget)}
+                      </span>
+                    </div>
+                    <div className="text-right min-w-[90px]">
+                      <span className="block text-[10px] text-slate-400 mb-0.5">Variance</span>
+                      <span className={`text-xs font-semibold ${isNeg ? "text-red-500" : isPos ? "text-emerald-600" : "text-slate-300"}`}>
+                        {variance}
+                      </span>
+                      {variancePct !== "—" && (
+                        <span className={`block text-[10px] ${isNeg ? "text-red-400" : isPos ? "text-emerald-500" : "text-slate-300"}`}>
+                          {variancePct}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center">
+              <p className="text-xs font-semibold text-slate-400">Income Statement</p>
+              <p className="text-[11px] text-slate-300 mt-1">Upload the close file above to populate</p>
+            </div>
+          )}
 
-            <div className={`rounded-lg px-4 py-3 flex items-center justify-between ${
-              runwayStatus === "danger" ? "bg-red-50 border border-red-200" :
-              runwayStatus === "ok" ? "bg-amber-50 border border-amber-200" :
-              runwayStatus === "good" ? "bg-emerald-50 border border-emerald-200" :
-              "bg-slate-50 border border-slate-200"
-            }`}>
-              <span className="text-xs font-semibold text-slate-600">Cash Runway</span>
-              <div className="text-right">
-                <span className={`text-lg font-extrabold ${
-                  runwayStatus === "danger" ? "text-red-600" :
-                  runwayStatus === "ok" ? "text-amber-600" :
-                  runwayStatus === "good" ? "text-emerald-700" : "text-slate-400"
-                }`}>
-                  {runway === "—" ? "—" : `${runway} mo`}
-                </span>
-                {runwayStatus === "danger" && <p className="text-[10px] text-red-500 font-semibold">⚠ Below 3-month floor — flag immediately</p>}
-                {runwayStatus === "ok" && <p className="text-[10px] text-amber-600">3–6 months — healthy range</p>}
-                {runwayStatus === "good" && <p className="text-[10px] text-emerald-600">&gt;6 months — strong position</p>}
+          {/* ── 3. Cash Position ─────────────────────────────────────────── */}
+          {parsedFileName ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+              <SectionHeader>Cash Position</SectionHeader>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Cash on Hand — read-only if found, editable if not */}
+                {form.cashOnHand ? (
+                  <div className="rounded-lg bg-slate-50 px-4 py-3">
+                    <span className="block text-[10px] font-semibold text-slate-400 mb-1">Cash on Hand</span>
+                    <span className="text-lg font-extrabold text-slate-800">{fmt(form.cashOnHand)}</span>
+                  </div>
+                ) : (
+                  <Field label="Cash on Hand ($)" required filled={!!form.cashOnHand} hint="not found in file — enter manually">
+                    <input
+                      type="text"
+                      placeholder="e.g. 579793"
+                      value={form.cashOnHand}
+                      onChange={(e) => setForm((f) => ({ ...f, cashOnHand: e.target.value }))}
+                      className={INPUT}
+                    />
+                  </Field>
+                )}
+                {/* Monthly OpEx — read-only if found, editable if not */}
+                {form.monthlyOpex ? (
+                  <div className="rounded-lg bg-slate-50 px-4 py-3">
+                    <span className="block text-[10px] font-semibold text-slate-400 mb-1">Monthly OpEx (avg)</span>
+                    <span className="text-lg font-extrabold text-slate-800">{fmt(form.monthlyOpex)}</span>
+                  </div>
+                ) : (
+                  <Field label="Monthly OpEx Avg ($)" required filled={!!form.monthlyOpex} hint="not found in file — enter manually">
+                    <input
+                      type="text"
+                      placeholder="e.g. 429332"
+                      value={form.monthlyOpex}
+                      onChange={(e) => setForm((f) => ({ ...f, monthlyOpex: e.target.value }))}
+                      className={INPUT}
+                    />
+                  </Field>
+                )}
+              </div>
+
+              <div className={`rounded-lg px-4 py-3 flex items-center justify-between ${
+                runwayStatus === "danger" ? "bg-red-50 border border-red-200" :
+                runwayStatus === "ok"     ? "bg-amber-50 border border-amber-200" :
+                runwayStatus === "good"   ? "bg-emerald-50 border border-emerald-200" :
+                "bg-slate-50 border border-slate-200"
+              }`}>
+                <span className="text-xs font-semibold text-slate-600">Cash Runway</span>
+                <div className="text-right">
+                  <span className={`text-lg font-extrabold ${
+                    runwayStatus === "danger" ? "text-red-600" :
+                    runwayStatus === "ok"     ? "text-amber-600" :
+                    runwayStatus === "good"   ? "text-emerald-700" : "text-slate-400"
+                  }`}>
+                    {runway === "—" ? "—" : `${runway} mo`}
+                  </span>
+                  {runwayStatus === "danger" && <p className="text-[10px] text-red-500 font-semibold">⚠ Below 3-month floor — flag immediately</p>}
+                  {runwayStatus === "ok"     && <p className="text-[10px] text-amber-600">3–6 months — healthy range</p>}
+                  {runwayStatus === "good"   && <p className="text-[10px] text-emerald-600">&gt;6 months — strong position</p>}
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center">
+              <p className="text-xs font-semibold text-slate-400">Cash Position</p>
+              <p className="text-[11px] text-slate-300 mt-1">Upload the close file above to populate</p>
+            </div>
+          )}
 
           {/* ── 4. Flagged Variances (auto-promoted + driver/options only) ── */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
@@ -762,11 +1110,11 @@ export function FinanceAgent() {
                     <div className="grid grid-cols-3 gap-3 text-xs">
                       <div>
                         <span className="text-slate-400 block text-[10px] mb-0.5">Actual</span>
-                        <span className="font-semibold text-slate-700">${v.actual}</span>
+                        <span className="font-semibold text-slate-700">{fmt(v.actual)}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 block text-[10px] mb-0.5">Budget</span>
-                        <span className="font-semibold text-slate-700">${v.budget}</span>
+                        <span className="font-semibold text-slate-700">{fmt(v.budget)}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 block text-[10px] mb-0.5">Variance</span>
@@ -794,8 +1142,29 @@ export function FinanceAgent() {
                     </div>
                   )}
 
-                  {/* Driver + Options — always editable */}
-                  <Field label="Driver" hint="what caused it">
+                  {/* Driver + Options — always editable, with Suggest button */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-slate-600">
+                        Driver <span className="font-normal text-slate-400">(what caused it)</span>
+                      </label>
+                      <button
+                        onClick={() => handleGenerateDrivers(i)}
+                        disabled={driverLoading[i]}
+                        className="flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2.5 py-0.5 text-[10px] font-bold text-teal-700 hover:bg-teal-100 transition disabled:opacity-50"
+                      >
+                        {driverLoading[i] ? (
+                          <>
+                            <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                            </svg>
+                            Thinking…
+                          </>
+                        ) : (
+                          <>✦ Suggest</>
+                        )}
+                      </button>
+                    </div>
                     <input
                       type="text"
                       placeholder="e.g. 3 emergency subcontractor call-outs on commercial jobs"
@@ -803,10 +1172,11 @@ export function FinanceAgent() {
                       onChange={(e) => updateVariance(i, { driver: e.target.value })}
                       className={INPUT}
                     />
-                  </Field>
+                    {driverError[i] && <p className="text-[10px] text-red-500">{driverError[i]}</p>}
+                  </div>
                   <Field label="Options" hint="2–3 corrective paths">
                     <textarea
-                      rows={2}
+                      rows={3}
                       placeholder="1. Tighten scheduling buffer  2. Renegotiate sub rates  3. Add contingency line to budget"
                       value={v.options}
                       onChange={(e) => updateVariance(i, { options: e.target.value })}
@@ -874,27 +1244,43 @@ export function FinanceAgent() {
           </div>
 
           {/* Generate */}
-          <button
-            onClick={handleSubmit}
-            disabled={loading || !form.clientName || !form.contactName}
-            style={loading || !form.clientName || !form.contactName ? {} : { backgroundColor: TEAL }}
-            className={`w-full rounded-xl py-4 text-sm font-bold tracking-wide transition shadow-md ${
-              loading || !form.clientName || !form.contactName
-                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                : "text-white hover:opacity-90 active:scale-[0.99]"
-            }`}
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                </svg>
-                Rick is writing…
-              </span>
-            ) : (
-              "Generate Email Draft →"
-            )}
-          </button>
+          {(() => {
+            const missing: string[] = [];
+            if (!parsedFileName) missing.push("upload the ops plan");
+            if (!form.contactName) missing.push("contact first name");
+            if (!form.industry) missing.push("industry");
+            const ready = missing.length === 0;
+            return (
+              <div className="space-y-2">
+                {!ready && !loading && (
+                  <p className="text-center text-xs text-amber-600 font-medium">
+                    Still needed: {missing.join(" · ")}
+                  </p>
+                )}
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading || !ready}
+                  style={loading || !ready ? {} : { backgroundColor: TEAL }}
+                  className={`w-full rounded-xl py-4 text-sm font-bold tracking-wide transition shadow-md ${
+                    loading || !ready
+                      ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                      : "text-white hover:opacity-90 active:scale-[0.99]"
+                  }`}
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                      </svg>
+                      Rick is writing…
+                    </span>
+                  ) : (
+                    "Generate Email Draft →"
+                  )}
+                </button>
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── RIGHT: Output ────────────────────────────────────────────────── */}

@@ -4,7 +4,7 @@
     "source": "Manual",
     "createdAt": "2026-06-15T00:01:00.000Z",
     "summary": "Strategic initiative — AI SDR into GHL",
-    "actionItem": "AI SDR integration into GHL — scope the build: lead routing logic, AI reply sequences, GHL workflow triggers, and handoff to human rep. Define MVP vs. full rollout.",
+    "actionItem": "AI SDR integration into GHL — chat with Joey tomorrow to scope this. Janelle doesn't have bandwidth for GHL setup; Joey has a support team that can handle it. Align on who owns what before any build starts.",
     "owner": "Janelle",
     "client": "RCG Internal",
     "priority": "High",
