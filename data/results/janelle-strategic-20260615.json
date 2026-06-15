@@ -35,4 +35,17 @@
     "category": "Internal Action Item",
     "isOverdue": false
   }
+,
+  {
+    "id": "strat-004",
+    "source": "Manual",
+    "createdAt": "2026-06-15T00:04:00.000Z",
+    "summary": "SealX financing — collect team personal info via secure form",
+    "actionItem": "Create JotForm (or similar secure form) to collect SealX team personal info for financing: Full Name, SSN, DOB, Home Address (City/State/Zip). Send each person a unique secure link. Rick drafted the ask — just needs the form built and links sent. No account needed if using JotForm free tier.",
+    "owner": "Janelle",
+    "client": "SealX",
+    "priority": "High",
+    "category": "Deadline / Follow-up",
+    "isOverdue": false
+  }
 ]
