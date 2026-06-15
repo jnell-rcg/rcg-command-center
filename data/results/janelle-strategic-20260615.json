@@ -41,7 +41,7 @@
     "source": "Manual",
     "createdAt": "2026-06-15T00:04:00.000Z",
     "summary": "SealX financing — collect team personal info via secure form",
-    "actionItem": "Use DocuSign to collect SealX team personal info for financing: Full Name, SSN, DOB, Home Address (City/State/Zip). Build the form in DocuSign and send each person a secure link. Rick has already drafted the ask. We have DocuSign — use that instead of JotForm.",
+    "actionItem": "Collect SealX team personal info for financing: Full Name, SSN, DOB, Home Address (City/State/Zip). Options: (1) DocuSign — we already have it, fully compliant for SSNs, preferred; (2) JotForm HIPAA tier if DocuSign is awkward for a plain data-collection form. Rick drafted the ask — just build the form and send each person a secure link.",
     "owner": "Janelle",
     "client": "SealX",
     "priority": "High",
