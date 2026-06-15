@@ -47,8 +47,8 @@ export default function InterviewPrepClient({
                 Copy Markdown
               </button>
             )}
-            <Link href="/" className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1.5 text-xs font-semibold text-white">Ops Tower</Link>
-            <Link href="/finance" className="rounded-md bg-orange-500 hover:bg-orange-600 transition px-3 py-1.5 text-xs font-semibold text-white">MEC Commentary Agent</Link>
+            <a href="https://ops.robyncg.com" className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1.5 text-xs font-semibold text-white">Ops Tower</a>
+            <a href="https://finance.robyncg.com" className="rounded-md bg-orange-500 hover:bg-orange-600 transition px-3 py-1.5 text-xs font-semibold text-white">MEC Commentary Agent</a>
           </div>
         </div>
       </header>
