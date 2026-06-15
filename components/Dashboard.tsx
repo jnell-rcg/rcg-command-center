@@ -279,7 +279,7 @@ export function Dashboard() {
             <div className="text-4xl mb-4">🚧</div>
             <h2 className="text-xl font-extrabold text-slate-800 mb-2">Forecasting</h2>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Under construction. This module will generate forward projections in Rick's voice — revenue model, headcount schedule, and scenario planning.
+              Under construction. This module will generate forward projections in Rick&apos;s voice — revenue model, headcount schedule, and scenario planning.
             </p>
             <span className="mt-4 inline-block rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-600 uppercase tracking-wide">
               Coming Soon
