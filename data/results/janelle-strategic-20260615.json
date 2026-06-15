@@ -1,0 +1,38 @@
+[
+  {
+    "id": "strat-001",
+    "source": "Manual",
+    "createdAt": "2026-06-15T00:01:00.000Z",
+    "summary": "Strategic initiative — AI SDR into GHL",
+    "actionItem": "AI SDR integration into GHL — scope the build: lead routing logic, AI reply sequences, GHL workflow triggers, and handoff to human rep. Define MVP vs. full rollout.",
+    "owner": "Janelle",
+    "client": "RCG Internal",
+    "priority": "High",
+    "category": "Internal Action Item",
+    "isOverdue": false
+  },
+  {
+    "id": "strat-002",
+    "source": "Manual",
+    "createdAt": "2026-06-15T00:02:00.000Z",
+    "summary": "Strategic initiative — Ops Tower team access",
+    "actionItem": "Ops Tower team access — architect multi-user consulting warehouse (McKinsey/Deloitte model): role-based views, shared project history, how-we-solved-it knowledge base. Define who gets access and what they see.",
+    "owner": "Janelle",
+    "client": "RCG Internal",
+    "priority": "High",
+    "category": "Internal Action Item",
+    "isOverdue": false
+  },
+  {
+    "id": "strat-003",
+    "source": "Manual",
+    "createdAt": "2026-06-15T00:03:00.000Z",
+    "summary": "Strategic initiative — Karbon replacement (mgmt view first)",
+    "actionItem": "Karbon replacement — build mgmt team view first (Janelle + Rick + Zack): capacity tracker, completed closes pipeline, and active pipeline. Replace Karbon for the 3 of you before expanding to full team.",
+    "owner": "Janelle",
+    "client": "RCG Internal",
+    "priority": "High",
+    "category": "Internal Action Item",
+    "isOverdue": false
+  }
+]
