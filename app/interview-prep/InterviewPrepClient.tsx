@@ -2,6 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import Image from "next/image";
+import Link from "next/link";
 
 const TEAL = "#0d2b2a";
 
@@ -46,8 +47,8 @@ export default function InterviewPrepClient({
                 Copy Markdown
               </button>
             )}
-            <a href="/" className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1.5 text-xs font-semibold text-white">Ops Tower</a>
-            <a href="/finance" className="rounded-md bg-orange-500 hover:bg-orange-600 transition px-3 py-1.5 text-xs font-semibold text-white">Finance Agent</a>
+            <Link href="/" className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1.5 text-xs font-semibold text-white">Ops Tower</Link>
+            <Link href="/finance" className="rounded-md bg-orange-500 hover:bg-orange-600 transition px-3 py-1.5 text-xs font-semibold text-white">Finance Agent</Link>
           </div>
         </div>
       </header>

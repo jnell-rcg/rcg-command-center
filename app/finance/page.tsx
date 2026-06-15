@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { FinanceAgent } from "@/components/FinanceAgent";
 import Image from "next/image";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "RCG Finance Agent",
@@ -45,8 +46,8 @@ export default function FinancePage() {
 
           {/* Nav links */}
           <div className="ml-auto flex items-center gap-2">
-            <a href="/" className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1.5 text-xs font-semibold text-white">Ops Tower</a>
-            <a href="/interview-prep" className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1.5 text-xs font-semibold text-white">Interview Prep</a>
+            <Link href="/" className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1.5 text-xs font-semibold text-white">Ops Tower</Link>
+            <Link href="/interview-prep" className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1.5 text-xs font-semibold text-white">Interview Prep</Link>
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-500 text-xs font-bold text-white shadow-sm ml-2">R</div>
           </div>
 
