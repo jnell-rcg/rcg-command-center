@@ -10,17 +10,53 @@ function safe<T>(fallback: T, fn: () => T): T {
   try { return fn(); } catch { return fallback; }
 }
 
+function readLocalArchive(): ArchivedItem[] {
+  return safe([], () => JSON.parse(localStorage.getItem(ARCHIVE_KEY) ?? "[]"));
+}
+
+function writeLocalArchive(list: ArchivedItem[]): void {
+  safe(undefined as void, () => localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list)));
+}
+
+function readLocalPins(): Set<string> {
+  return safe(new Set<string>(), () => new Set<string>(JSON.parse(localStorage.getItem(PINS_KEY) ?? "[]")));
+}
+
+function writeLocalPins(pins: Set<string>): void {
+  safe(undefined as void, () => localStorage.setItem(PINS_KEY, JSON.stringify([...pins])));
+}
+
+// Pulls server state (source of truth) into localStorage so it survives cache clears
+// and works the same across every domain/origin pointed at this app.
+export async function syncFromServer(): Promise<void> {
+  try {
+    const [archiveRes, pinsRes] = await Promise.all([
+      fetch("/api/state/archive"),
+      fetch("/api/state/pins"),
+    ]);
+    const archiveData = await archiveRes.json();
+    const pinsData = await pinsRes.json();
+    writeLocalArchive(archiveData.items ?? []);
+    writeLocalPins(new Set<string>(pinsData.ids ?? []));
+  } catch {
+    // offline or server unreachable — fall back to whatever's already in localStorage
+  }
+}
+
 export function archiveItem(item: ActionItem): void {
-  safe(undefined as void, () => {
-    const existing = getArchivedItems();
-    if (existing.find((i) => i.id === item.id)) return;
-    const list: ArchivedItem[] = [...existing, { ...item, archivedAt: new Date().toISOString() }];
-    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list));
-  });
+  const existing = readLocalArchive();
+  if (existing.find((i) => i.id === item.id)) return;
+  const entry: ArchivedItem = { ...item, archivedAt: new Date().toISOString() };
+  writeLocalArchive([...existing, entry]);
+  fetch("/api/state/archive", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(item),
+  }).catch(() => {});
 }
 
 export function getArchivedItems(): ArchivedItem[] {
-  return safe([], () => JSON.parse(localStorage.getItem(ARCHIVE_KEY) ?? "[]"));
+  return readLocalArchive();
 }
 
 export function getArchivedIds(): Set<string> {
@@ -35,16 +71,17 @@ export function getDoneThisWeek(): ArchivedItem[] {
 }
 
 export function getPinnedIds(): Set<string> {
-  return safe(new Set<string>(), () =>
-    new Set<string>(JSON.parse(localStorage.getItem(PINS_KEY) ?? "[]"))
-  );
+  return readLocalPins();
 }
 
 export function togglePin(id: string): Set<string> {
-  return safe(new Set<string>(), () => {
-    const pins = getPinnedIds();
-    pins.has(id) ? pins.delete(id) : pins.add(id);
-    localStorage.setItem(PINS_KEY, JSON.stringify([...pins]));
-    return new Set(pins);
-  });
+  const pins = readLocalPins();
+  pins.has(id) ? pins.delete(id) : pins.add(id);
+  writeLocalPins(pins);
+  fetch("/api/state/pins", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids: [...pins] }),
+  }).catch(() => {});
+  return new Set(pins);
 }

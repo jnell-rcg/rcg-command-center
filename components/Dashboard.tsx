@@ -6,6 +6,7 @@ import {
   getArchivedIds,
   getDoneThisWeek,
   getPinnedIds,
+  syncFromServer,
   togglePin,
 } from "@/lib/archiveStore";
 import { applyOwnerOverrides, getOwnerOverrides, setOwnerOverride } from "@/lib/ownerStore";
@@ -56,10 +57,7 @@ export function Dashboard() {
   const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Init client-side state from localStorage
   useEffect(() => {
-    setPinnedIds(getPinnedIds());
-    setDoneItems(getDoneThisWeek());
     setOwnerOverrides(getOwnerOverrides());
     setItemEdits(getItemEdits());
   }, []);
@@ -67,6 +65,10 @@ export function Dashboard() {
   const loadResults = useCallback(async () => {
     setLoading(true);
     try {
+      // Server is the source of truth for archive/pins — sync before filtering
+      await syncFromServer();
+      setPinnedIds(getPinnedIds());
+      setDoneItems(getDoneThisWeek());
       const res = await fetch("/api/results");
       const data = await res.json();
       const archivedIds = getArchivedIds();
