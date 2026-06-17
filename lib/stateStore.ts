@@ -47,3 +47,14 @@ export function writePins(ids: string[]): string[] {
   writeJson(PINS_FILE, ids);
   return ids;
 }
+
+const SWEEP_META_FILE = join(STATE_DIR, "sweep-meta.json");
+
+export function getLastSweepAt(): string | null {
+  const meta = readJson<{ lastSweepAt?: string }>(SWEEP_META_FILE, {});
+  return meta.lastSweepAt ?? null;
+}
+
+export function setLastSweepAt(iso: string): void {
+  writeJson(SWEEP_META_FILE, { lastSweepAt: iso });
+}
