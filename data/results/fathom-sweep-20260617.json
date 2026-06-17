@@ -1,0 +1,194 @@
+[
+  {
+    "id": "fs17-001", "source": "Fathom", "createdAt": "2026-06-16T00:01:00.000Z",
+    "summary": "Poppy AI CFO Kickoff 6/16 — $5k/mo retainer, $5M raise at $50M valuation",
+    "actionItem": "Send Sydney invoice for $5,000/mo retainer",
+    "owner": "Rick", "client": "Poppy AI", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-002", "source": "Fathom", "createdAt": "2026-06-16T00:02:00.000Z",
+    "summary": "Poppy AI CFO Kickoff 6/16",
+    "actionItem": "Text Naz + Sydney access/data list + goals; then request viewer access to GL, bank, cards, payroll, CRM",
+    "owner": "Rick", "client": "Poppy AI", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-003", "source": "Fathom", "createdAt": "2026-06-16T00:03:00.000Z",
+    "summary": "Vitalic Health FP&A 6/16 — $2k-3k/mo engagement, follow-up Jul 1",
+    "actionItem": "Email Ben FP&A proposal + sample model/materials by Jun 18; request review by Jul 1",
+    "owner": "Rick", "client": "Vitalic Health", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-004", "source": "Fathom", "createdAt": "2026-06-16T00:04:00.000Z",
+    "summary": "Vitalic Health FP&A 6/16",
+    "actionItem": "Send calendar invite to Ben for Jul 1 9:30–10:00am follow-up call",
+    "owner": "Rick", "client": "Vitalic Health", "priority": "Medium", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-005", "source": "Fathom", "createdAt": "2026-06-16T00:05:00.000Z",
+    "summary": "CrowdVest Accounting 6/16 — rescheduled due to Penny travel",
+    "actionItem": "Schedule CrowdVest Accounting call for Jun 17 12:00 PM with Tara, Maria, Kenny; send Zoom invite",
+    "owner": "Rick", "client": "CrowdVest", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": true
+  },
+  {
+    "id": "fs17-006", "source": "Fathom", "createdAt": "2026-06-15T00:01:00.000Z",
+    "summary": "RCG Wellness Webinar Planning 6/15 — Jul 9 7pm ET, 10-numbers deck, $3k ad budget",
+    "actionItem": "Set up Zoom for Jul 9 7pm ET webinar; share link with Alex + Satoshi",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-007", "source": "Fathom", "createdAt": "2026-06-15T00:02:00.000Z",
+    "summary": "RCG Wellness Webinar Planning 6/15",
+    "actionItem": "Finalize webinar title; complete 10-numbers deck; send to Alex + Satoshi",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-008", "source": "Fathom", "createdAt": "2026-06-15T00:03:00.000Z",
+    "summary": "RCG Wellness Webinar Planning 6/15",
+    "actionItem": "Film 3 wellness ad videos (30-60s) with Zach by Jun 18; send to Alex + Satoshi",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-009", "source": "Fathom", "createdAt": "2026-06-15T00:04:00.000Z",
+    "summary": "RCG Wellness Webinar Planning 6/15",
+    "actionItem": "Email Scott + Jazz (CLX) re: proposal; send requested financials",
+    "owner": "Rick", "client": "CLX", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-010", "source": "Fathom", "createdAt": "2026-06-15T00:05:00.000Z",
+    "summary": "Maria & Rick 1:1 6/15 — hire Natalia, cancel Carbon + Coefficient, Karbon replacement discussed",
+    "actionItem": "Email Ken re: CrowdVest call; attach report; schedule; invite Tara; resolve wires/deposits",
+    "owner": "Rick", "client": "CrowdVest", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-011", "source": "Fathom", "createdAt": "2026-06-15T00:06:00.000Z",
+    "summary": "Maria & Rick 1:1 6/15",
+    "actionItem": "Onboard Natalia; assign CrowdVest portfolio; get her up to speed",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-012", "source": "Fathom", "createdAt": "2026-06-15T00:07:00.000Z",
+    "summary": "Maria & Rick 1:1 6/15",
+    "actionItem": "Cancel Carbon workflow tool",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-013", "source": "Fathom", "createdAt": "2026-06-15T00:08:00.000Z",
+    "summary": "Maria & Rick 1:1 6/15",
+    "actionItem": "Cancel Coefficient; evaluate QBO dev license + AI reporting with Noah",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-014", "source": "Fathom", "createdAt": "2026-06-15T00:09:00.000Z",
+    "summary": "Maria & Rick 1:1 6/15",
+    "actionItem": "Deploy Janelle to set up Scaled payroll provider",
+    "owner": "Janelle", "client": "Scaled", "priority": "Medium", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-015", "source": "Fathom", "createdAt": "2026-06-12T00:01:00.000Z",
+    "summary": "SEP x SealX Monthly 6/12 — SEO working, website bottleneck, GBP access needed",
+    "actionItem": "Simplify SealX website conversion: remove calendar booking; reduce required form fields",
+    "owner": "Rick", "client": "SealX", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-016", "source": "Fathom", "createdAt": "2026-06-12T00:02:00.000Z",
+    "summary": "SEP x SealX Monthly 6/12",
+    "actionItem": "Secure GBP (Google Business Profile) access for SealX; if no login in 1-2 weeks, reclaim via SEP",
+    "owner": "Rick", "client": "SealX", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-017", "source": "Fathom", "createdAt": "2026-06-12T00:03:00.000Z",
+    "summary": "Keenan x Rick Weekly 6/12 — AI branding fixed ad performance, CLV:CAC improving, $2M LOC in progress",
+    "actionItem": "Send Keenan sales manager comp framework + KPIs for Garrick",
+    "owner": "Rick", "client": "HopX", "priority": "Medium", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-018", "source": "Fathom", "createdAt": "2026-06-12T00:04:00.000Z",
+    "summary": "Keenan x Rick Weekly 6/12",
+    "actionItem": "Email Rob Spangle re: SaaS Capital LOC status; request next steps",
+    "owner": "Rick", "client": "HopX", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-019", "source": "Fathom", "createdAt": "2026-06-12T00:05:00.000Z",
+    "summary": "Aleja & Rick 1:1 6/12 — Crowdvest cleanup starts Mon, Scaled books review for Dave, CLX Katie situation",
+    "actionItem": "Scaled: review financials; send future-planning doc to Dave/Sawyer/Max",
+    "owner": "Rick", "client": "Scaled", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-020", "source": "Fathom", "createdAt": "2026-06-11T00:01:00.000Z",
+    "summary": "Janelle & Rick Gym Meeting 6/11 — scope creep on M&A, team capacity maxed, exit readiness lane needed",
+    "actionItem": "Screenshot Carbon workflows; feed to Claude for rebuild into agent dashboard",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-021", "source": "Fathom", "createdAt": "2026-06-11T00:02:00.000Z",
+    "summary": "Janelle & Rick Gym Meeting 6/11",
+    "actionItem": "Update Alex engagement to hourly; draft Exit Readiness/Transaction Support scope + pricing",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-022", "source": "Fathom", "createdAt": "2026-06-10T00:01:00.000Z",
+    "summary": "Rick/Scott (SealX) Weekly 6/10 — LOC blocked on owner SSN/DOB, AR cleanup, gross margin at 24%",
+    "actionItem": "Email SealX owners 1:1 re: LOC personal info request (SSN/DOB) — use DocuSign form",
+    "owner": "Rick", "client": "SealX", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-023", "source": "Fathom", "createdAt": "2026-06-10T00:02:00.000Z",
+    "summary": "Rick/Scott (SealX) Weekly 6/10",
+    "actionItem": "Text Katie re: AR cleanup status + reconciliation worksheet for SealX",
+    "owner": "Rick", "client": "SealX", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-024", "source": "Fathom", "createdAt": "2026-06-10T00:03:00.000Z",
+    "summary": "Rick/Scott (SealX) Weekly 6/10",
+    "actionItem": "Send SealX May close file to Scott; then schedule close meeting",
+    "owner": "Rick", "client": "SealX", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-025", "source": "Fathom", "createdAt": "2026-06-10T00:04:00.000Z",
+    "summary": "RCG & BadaBoom Webinar Planning 6/10 — wellness/biohacking pivot, Jul 9 webinar, CryoCon assets",
+    "actionItem": "Draft wellness/biohacking ICP + pain points + case studies for Satoshi/Alex; share for funnel/ad refresh",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-026", "source": "Fathom", "createdAt": "2026-06-10T00:05:00.000Z",
+    "summary": "Rick & Janelle AI Finance Agent Interview Qs 6/10",
+    "actionItem": "Feed Part 2 AI Finance Agent answers to agent; assess progress and schedule Part 3 with Rick",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "Medium", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-027", "source": "Fathom", "createdAt": "2026-06-10T00:06:00.000Z",
+    "summary": "Brandon & Rick SFM Commentary 6/10 — Brandon taking over SFM reporting, Park City churn at 48%",
+    "actionItem": "Share QB custom reports with Brandon; migrate him to accounting access",
+    "owner": "Rick", "client": "SmartFit Method", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-028", "source": "Fathom", "createdAt": "2026-06-10T00:07:00.000Z",
+    "summary": "Brandon & Rick SFM Commentary 6/10",
+    "actionItem": "Email Rob (SFM) May commentary with MRR waterfall; CC Brandon; introduce him as analyst",
+    "owner": "Rick", "client": "SmartFit Method", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-029", "source": "Fathom", "createdAt": "2026-06-09T00:01:00.000Z",
+    "summary": "Kalm Longevity CFO Kickoff 6/9 — point-based membership, 18-month ramp to 650 members",
+    "actionItem": "Build circuits/tech matrix; send to Luke/Courtney for mins/roles; then build profit formula",
+    "owner": "Rick", "client": "Kalm Longevity", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-030", "source": "Fathom", "createdAt": "2026-06-09T00:02:00.000Z",
+    "summary": "Kalm Longevity CFO Kickoff 6/9",
+    "actionItem": "Send conservative ramp model (M1: 50 members, +25-30/mo, 5% churn) to Luke/Courtney",
+    "owner": "Rick", "client": "Kalm Longevity", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "fs17-031", "source": "Fathom", "createdAt": "2026-06-09T00:03:00.000Z",
+    "summary": "NeurGear x RCG 6/9 — not yet at $3M sweet spot, 90-day follow-up set",
+    "actionItem": "Email Jon (NeurGear) summary of fractional CFO + fundraising pricing/structure; follow up in 60-90 days",
+    "owner": "Zack", "client": "NeurGear", "priority": "Low", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "fs17-032", "source": "Fathom", "createdAt": "2026-06-09T00:04:00.000Z",
+    "summary": "Rick & Joe Coombs Partnership 6/9 — cross-referral partnership, content-first dark funnel strategy",
+    "actionItem": "Email Joe warm construction lead details (Zack action)",
+    "owner": "Zack", "client": "RCG Internal", "priority": "Medium", "category": "Internal Action Item", "isOverdue": false
+  }
+]
