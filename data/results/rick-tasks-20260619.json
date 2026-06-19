@@ -35,4 +35,11 @@
     "actionItem": "Send RCG ELT tasks for next Friday's team call",
     "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
   }
+,
+  {
+    "id": "rt19-007", "source": "Manual", "createdAt": "2026-06-19T00:07:00.000Z",
+    "summary": "Rick task 6/19",
+    "actionItem": "Send documents to Jake Kelley (Paradise)",
+    "owner": "Rick", "client": "Paradise", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  }
 ]

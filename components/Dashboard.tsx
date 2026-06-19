@@ -21,6 +21,7 @@ import { FilterBar, Filters } from "./FilterBar";
 import { SlackUpload } from "./SlackUpload";
 import { WhatsAppUpload } from "./WhatsAppUpload";
 import { ManualInput } from "./ManualInput";
+import { QuickAddTask } from "./QuickAddTask";
 import { RickJanelle1on1 } from "./RickJanelle1on1";
 import { TodaysFocus } from "./TodaysFocus";
 import { FinanceAgent } from "./FinanceAgent";
@@ -395,6 +396,7 @@ export function Dashboard() {
       {/* Status toggle + view layout + filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
+          <QuickAddTask onAdded={loadResults} />
           {/* Active / Completed toggle */}
           <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
             {(["active", "completed"] as StatusFilter[]).map((s) => (
