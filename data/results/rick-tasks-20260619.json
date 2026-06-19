@@ -1,0 +1,38 @@
+[
+  {
+    "id": "rt19-001", "source": "Manual", "createdAt": "2026-06-19T00:01:00.000Z",
+    "summary": "Rick task 6/19",
+    "actionItem": "Email John (WM) — document and send all financial issues found in their books",
+    "owner": "Rick", "client": "WM", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "rt19-002", "source": "Manual", "createdAt": "2026-06-19T00:02:00.000Z",
+    "summary": "Rick task 6/19",
+    "actionItem": "Send Ben (Vitalic Health) FP&A proposal — no cost included yet",
+    "owner": "Rick", "client": "Vitalic Health", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "rt19-003", "source": "Manual", "createdAt": "2026-06-19T00:03:00.000Z",
+    "summary": "Rick task 6/19",
+    "actionItem": "Revise LLT chart of accounts",
+    "owner": "Rick", "client": "LLT", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "rt19-004", "source": "Manual", "createdAt": "2026-06-19T00:04:00.000Z",
+    "summary": "Rick task 6/19",
+    "actionItem": "Update SealX forecast",
+    "owner": "Rick", "client": "SealX", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "rt19-005", "source": "Manual", "createdAt": "2026-06-19T00:05:00.000Z",
+    "summary": "Rick task 6/19",
+    "actionItem": "Get Keenan to engage with Emanay",
+    "owner": "Rick", "client": "HopX", "priority": "Medium", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "rt19-006", "source": "Manual", "createdAt": "2026-06-19T00:06:00.000Z",
+    "summary": "Rick task 6/19",
+    "actionItem": "Send RCG ELT tasks for next Friday's team call",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  }
+]
