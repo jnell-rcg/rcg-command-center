@@ -48,4 +48,11 @@
     "category": "Deadline / Follow-up",
     "isOverdue": false
   }
+,
+  {
+    "id": "strat-005", "source": "Manual", "createdAt": "2026-06-19T00:08:00.000Z",
+    "summary": "AI SDR research",
+    "actionItem": "Watch Loom tutorial on Nova (AI SDR) sent by Nash Lynch",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  }
 ]
