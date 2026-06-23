@@ -1,0 +1,38 @@
+[
+  {
+    "id": "jr23-001", "source": "Fathom", "createdAt": "2026-06-23T00:01:00.000Z",
+    "summary": "Janelle & Rick 1:1 6/23 — MEC agent fix: currently only works on Janelle's laptop, needs Anthropic API brought in so Brandon + team can use it",
+    "actionItem": "Bring in Anthropic API for MEC Commentary Agent — coordinate with Noah to deploy so the app can generate email drafts for anyone on the team, not just Janelle's install",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "jr23-002", "source": "Fathom", "createdAt": "2026-06-23T00:02:00.000Z",
+    "summary": "Janelle & Rick 1:1 6/23 — Natalia payroll can't be edited in Gusto until her start date 6/25",
+    "actionItem": "Process Natalia's payroll setup in Gusto on Jun 25 (start date) — locked until then, same issue Sarah had",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Payroll & HR", "isOverdue": false
+  },
+  {
+    "id": "jr23-003", "source": "Fathom", "createdAt": "2026-06-23T00:03:00.000Z",
+    "summary": "Janelle & Rick 1:1 6/23 — All Hands Friday, Janelle prepping slides on Ops Tower + AI CFO roadmap",
+    "actionItem": "Finish All Hands slides and send to Rick: Ops Tower overview, AI CFO status, roadmap for what's next (API integration, Noah coordination, digital product layer). Keep it high-level, a few slides.",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "jr23-004", "source": "Fathom", "createdAt": "2026-06-23T00:04:00.000Z",
+    "summary": "Janelle & Rick 1:1 6/23 — CFO course/curriculum strategy: keep between Rick/Janelle/Zack/Dave only for now",
+    "actionItem": "Do NOT share Rick's CFO course curriculum with Alex & Satoshi yet — keep it between Rick, Janelle, Zack, and Dave until ready to deploy. Let Zack keep Alex/Satoshi focused on the webinar.",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "Medium", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "jr23-005", "source": "Fathom", "createdAt": "2026-06-23T00:05:00.000Z",
+    "summary": "Janelle & Rick 1:1 6/23 — AI CFO product roadmap: historics first, forecasting is phase 2 upsell",
+    "actionItem": "AI CFO product: polish historics view first (month-end close, financial review, KPI/analytics). Forecasting + planning is phase 2 upsell (~$100 add-on). Do not build forecasting yet.",
+    "owner": "Rick", "client": "RCG Internal", "priority": "Medium", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "jr23-006", "source": "Fathom", "createdAt": "2026-06-23T00:06:00.000Z",
+    "summary": "Janelle & Rick 1:1 6/23 — Light Systems fake CFO blocking QB/bank access, possible financial irregularities",
+    "actionItem": "Push Light Systems for QB + bank account viewer access — their internal 'CFO' has blocked Amex integration (claims it's too complex) and delayed bank access. Rick to escalate in ~1.5 weeks. Flag: may be hiding accounting mess or worse.",
+    "owner": "Rick", "client": "Light Systems", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  }
+]
