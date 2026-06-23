@@ -1,0 +1,20 @@
+[
+  {
+    "id": "nova-001", "source": "Fathom", "createdAt": "2026-06-23T00:01:00.000Z",
+    "summary": "Nova x RCG AI SDR 6/23 — AI caller already set up, just needs GHL workflow + custom values copied over (10-20 min). Nash sending new Loom today showing: step 1 add workflow + custom values, step 2 connect to RCG GHL (existing video).",
+    "actionItem": "Watch Nash's new Loom (coming today) — shows how to add Nova AI SDR workflow steps + custom values into RCG's GoHighLevel account. Then use the original Loom to connect it. This is the full GHL setup, estimated 10-20 min once video arrives.",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "nova-002", "source": "Fathom", "createdAt": "2026-06-23T00:02:00.000Z",
+    "summary": "Nova x RCG AI SDR 6/23 — once GHL workflow is live, turn paid ads back on for webinar",
+    "actionItem": "Once Nova AI SDR GHL workflow is connected: turn paid ads back on — ads are paused until SDR is set up to handle inbound leads from webinar campaign",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "nova-003", "source": "Fathom", "createdAt": "2026-06-23T00:03:00.000Z",
+    "summary": "Nova x RCG AI SDR 6/23 — Rick flagged customer success workflows as a next use case",
+    "actionItem": "Think through Nova AI SDR workflows for customer success side — specifically NPS switch process with existing clients. Rick flagged this as a high-value next application after SDR is live.",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "Medium", "category": "Internal Action Item", "isOverdue": false
+  }
+]
