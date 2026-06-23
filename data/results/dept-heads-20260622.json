@@ -1,0 +1,68 @@
+[
+  {
+    "id": "dh22-001", "source": "Fathom", "createdAt": "2026-06-22T00:01:00.000Z",
+    "summary": "RCG Dept Heads 6/22 — new clients Poppy AI + Light Systems, AR follow-ups, Natalia starts Thu",
+    "actionItem": "Propose SmartFit fractional CFO retainer to Connor: $4.5k flat + $500/site model",
+    "owner": "Rick", "client": "SmartFit Method", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "dh22-002", "source": "Fathom", "createdAt": "2026-06-22T00:02:00.000Z",
+    "summary": "RCG Dept Heads 6/22",
+    "actionItem": "Confirm 3pm call with Scott (SealX)",
+    "owner": "Rick", "client": "SealX", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "dh22-003", "source": "Fathom", "createdAt": "2026-06-22T00:03:00.000Z",
+    "summary": "RCG Dept Heads 6/22",
+    "actionItem": "Schedule Tuesday CRM reviews with Zack; record in Fathom",
+    "owner": "Rick", "client": "RCG Internal", "priority": "Medium", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "dh22-004", "source": "Fathom", "createdAt": "2026-06-22T00:04:00.000Z",
+    "summary": "RCG Dept Heads 6/22",
+    "actionItem": "Schedule call with Nash re: GHL/SDR automation",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "dh22-005", "source": "Fathom", "createdAt": "2026-06-22T00:05:00.000Z",
+    "summary": "RCG Dept Heads 6/22",
+    "actionItem": "Email Zack All Hands topics; request exec prep for Friday call",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "dh22-006", "source": "Fathom", "createdAt": "2026-06-22T00:06:00.000Z",
+    "summary": "RCG Dept Heads 6/22",
+    "actionItem": "Draft RCG customer journey + pricing model",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "dh22-007", "source": "Fathom", "createdAt": "2026-06-22T00:07:00.000Z",
+    "summary": "RCG Dept Heads 6/22",
+    "actionItem": "Email Noah re: AI CFO QuickBooks approval; request update",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "dh22-008", "source": "Fathom", "createdAt": "2026-06-22T00:08:00.000Z",
+    "summary": "RCG Dept Heads 6/22",
+    "actionItem": "Schedule Friday AI domains alignment call with Noah",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "dh22-009", "source": "Fathom", "createdAt": "2026-06-22T00:09:00.000Z",
+    "summary": "RCG Dept Heads 6/22",
+    "actionItem": "Extend Friday All Hands to 45 min; add Zack to invite",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "dh22-010", "source": "Fathom", "createdAt": "2026-06-22T00:10:00.000Z",
+    "summary": "RCG Dept Heads 6/22",
+    "actionItem": "Process Natalia payroll: $1,200 Jul 1; $1,000 Aug 1",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Payroll & HR", "isOverdue": false
+  },
+  {
+    "id": "dh22-011", "source": "Fathom", "createdAt": "2026-06-22T00:11:00.000Z",
+    "summary": "RCG Dept Heads 6/22",
+    "actionItem": "Share RCG + personal calendars with Rick (Janelle action)",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "Medium", "category": "Internal Action Item", "isOverdue": false
+  }
+]
