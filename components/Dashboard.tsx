@@ -129,11 +129,11 @@ export function Dashboard() {
     setPendingIds((prev) => new Set([...prev, id]));
   }
 
-  function handleArchive(id: string) {
+  async function handleArchive(id: string) {
     const item = items.find((i) => i.id === id);
     if (!item) return;
-    archiveItem(item);
     setItems((prev) => prev.filter((i) => i.id !== id));
+    await archiveItem(item);
     setDoneItems(getDoneThisWeek());
     // Remove from pins if pinned
     setPinnedIds((prev) => {
@@ -143,6 +143,15 @@ export function Dashboard() {
       togglePin(id);
       return next;
     });
+  }
+
+  async function handleClearAllCompleted() {
+    try {
+      await fetch("/api/results/clear-completed", { method: "POST" });
+      // Also clear localStorage archive so Done This Week resets
+      localStorage.removeItem("rcg-archive");
+      setDoneItems([]);
+    } catch { /* ignore */ }
   }
 
   function handlePin(id: string) {
@@ -559,9 +568,17 @@ export function Dashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-xs text-slate-500">
-                {doneItems.length} item{doneItems.length !== 1 ? "s" : ""} completed in the last 7 days — rolls off after one week.
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-slate-500">
+                  {doneItems.length} item{doneItems.length !== 1 ? "s" : ""} completed in the last 7 days — rolls off after one week.
+                </p>
+                <button
+                  onClick={handleClearAllCompleted}
+                  className="text-xs text-red-500 hover:text-red-700 font-medium"
+                >
+                  Clear All Completed
+                </button>
+              </div>
               <div className="space-y-2">
                 {doneItems.map((item) => (
                   <ActionItemCard

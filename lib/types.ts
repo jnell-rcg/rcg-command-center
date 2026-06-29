@@ -33,6 +33,7 @@ export interface ActionItem {
   rawContext?: string;    // snippet of source text for reference
   notes?: string;         // research / reference notes (collapsible on card)
   createdAt: string;      // ISO timestamp
+  completed?: boolean;    // true when user marks done — filtered at source before returning to client
 }
 
 export interface ClassifyRequest {

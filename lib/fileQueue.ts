@@ -56,7 +56,8 @@ export function readAllResults(): ActionItem[] {
     .filter((f) => f.endsWith(".json"))
     .flatMap((f) => {
       try {
-        return JSON.parse(readFileSync(join(RESULTS_DIR, f), "utf8")) as ActionItem[];
+        const items = JSON.parse(readFileSync(join(RESULTS_DIR, f), "utf8")) as ActionItem[];
+        return items.filter((i) => !i.completed);
       } catch {
         return [];
       }
@@ -80,6 +81,48 @@ export function readAllResults(): ActionItem[] {
     seenIds.add(item.id);
     return true;
   });
+}
+
+// Finds the item whose stableId matches and sets completed:true in its source file.
+// Returns true if found and written, false if not found.
+export function markItemCompleted(id: string): boolean {
+  if (!existsSync(RESULTS_DIR)) return false;
+  for (const file of readdirSync(RESULTS_DIR).filter((f) => f.endsWith(".json"))) {
+    const filePath = join(RESULTS_DIR, file);
+    try {
+      const items = JSON.parse(readFileSync(filePath, "utf8")) as ActionItem[];
+      const idx = items.findIndex((item) => stableId(item.actionItem) === id);
+      if (idx !== -1) {
+        items[idx] = { ...items[idx], completed: true };
+        writeFileSync(filePath, JSON.stringify(items, null, 2), "utf8");
+        return true;
+      }
+    } catch { continue; }
+  }
+  return false;
+}
+
+// Removes all items with completed:true from every result file.
+// Deletes the file entirely if all items are removed.
+export function clearAllCompleted(): number {
+  if (!existsSync(RESULTS_DIR)) return 0;
+  let count = 0;
+  for (const file of readdirSync(RESULTS_DIR).filter((f) => f.endsWith(".json"))) {
+    const filePath = join(RESULTS_DIR, file);
+    try {
+      const items = JSON.parse(readFileSync(filePath, "utf8")) as ActionItem[];
+      const remaining = items.filter((i) => !i.completed);
+      if (remaining.length < items.length) {
+        count += items.length - remaining.length;
+        if (remaining.length === 0) {
+          unlinkSync(filePath);
+        } else {
+          writeFileSync(filePath, JSON.stringify(remaining, null, 2), "utf8");
+        }
+      }
+    } catch { continue; }
+  }
+  return count;
 }
 
 export function listPending(): PendingRequest[] {
