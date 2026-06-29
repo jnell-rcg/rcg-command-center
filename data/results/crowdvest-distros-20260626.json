@@ -1,0 +1,20 @@
+[
+  {
+    "id": "cv26-001", "source": "Fathom", "createdAt": "2026-06-26T00:10:00.000Z",
+    "summary": "Crowdvest Distros 6/26 — Oak Hall $54k distribution, Frontier Q1+Q2 combined, Wayne Heights reconciliation",
+    "actionItem": "Oak Hall: process Sussman $50k split (25k Chuck Rowers AAMH / 25k Edelman); distribute $54k NOI; waive fees; pay Crowdvest",
+    "owner": "Rick", "client": "CrowdVest", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "cv26-002", "source": "Fathom", "createdAt": "2026-06-26T00:11:00.000Z",
+    "summary": "Crowdvest Distros 6/26",
+    "actionItem": "Frontier: review settlement/credits; reconcile Q1; combine Q1+Q2 distribution",
+    "owner": "Rick", "client": "CrowdVest", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  },
+  {
+    "id": "cv26-003", "source": "Fathom", "createdAt": "2026-06-26T00:12:00.000Z",
+    "summary": "Crowdvest Distros 6/26",
+    "actionItem": "Wayne Heights: reconcile Q1 revenue (bank vs rent roll); resolve $15,690 duplicate; correct Jan-Mar",
+    "owner": "Rick", "client": "CrowdVest", "priority": "High", "category": "Client Action Item", "isOverdue": false
+  }
+]

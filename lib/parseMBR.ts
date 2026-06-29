@@ -79,6 +79,75 @@ function findRow(rows: unknown[][], ...keywords: string[]): unknown[] | null {
   return null;
 }
 
+// ── IS-layout helpers ─────────────────────────────────────────────────────────
+
+function isExcelDate(val: unknown): boolean {
+  if (val instanceof Date) return true;
+  if (typeof val === "number" && val > 40000 && val < 60000) return true;
+  return false;
+}
+
+function excelDateToMonthStr(val: unknown): string | null {
+  try {
+    let d: Date;
+    if (val instanceof Date) d = val;
+    else if (typeof val === "number") {
+      d = new Date(Date.UTC(1899, 11, 30) + val * 86400000);
+    } else return null;
+    return d.toLocaleString("en-US", { month: "long", year: "numeric" });
+  } catch { return null; }
+}
+
+/** Detect IS-tab layout: col A empty, "Account Name" in col B, month date headers in cols E+.
+ *  Returns actualCol (rightmost month with data), budgetCol (Plan/Budget col or 999), and monthClosed. */
+function detectISLayout(rows: unknown[][]): {
+  actualCol: number;
+  budgetCol: number;
+  monthClosed: string | null;
+} | null {
+  for (let r = 0; r < Math.min(rows.length, 20); r++) {
+    for (let c = 0; c < rows[r].length; c++) {
+      if (!norm(rows[r][c]).includes("accountname")) continue;
+
+      const hdrRow = rows[r];
+      let budgetCol = -1;
+      let actualCol = -1;
+
+      // Find explicit Plan/Budget column
+      for (let cc = c + 1; cc < hdrRow.length; cc++) {
+        const h = norm(hdrRow[cc]);
+        if (h === "plan" || h === "budget" || h.includes("annualplan") || h.includes("annualbudget")) {
+          budgetCol = cc;
+        }
+      }
+
+      // Rightmost date-typed column that has numeric data below it
+      for (let cc = hdrRow.length - 1; cc > c; cc--) {
+        if (cc === budgetCol) continue;
+        const hv = hdrRow[cc];
+        const isMonthCol =
+          isExcelDate(hv) ||
+          (typeof hv === "string" && /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(hv));
+        if (!isMonthCol) continue;
+        for (let rr = r + 1; rr < Math.min(rows.length, r + 40); rr++) {
+          if (cleanNumber(rows[rr][cc])) { actualCol = cc; break; }
+        }
+        if (actualCol >= 0) break;
+      }
+
+      if (actualCol < 0) return null;
+
+      const hdrMonthVal = hdrRow[actualCol];
+      const monthClosed = isExcelDate(hdrMonthVal)
+        ? excelDateToMonthStr(hdrMonthVal)
+        : typeof hdrMonthVal === "string" ? hdrMonthVal.trim() : null;
+
+      return { actualCol, budgetCol: budgetCol >= 0 ? budgetCol : 999, monthClosed };
+    }
+  }
+  return null;
+}
+
 // ── Sheet → rows helper ───────────────────────────────────────────────────────
 
 function sheetToRows(wb: XLSX.WorkBook, sheetName: string): unknown[][] {
@@ -90,7 +159,7 @@ function sheetToRows(wb: XLSX.WorkBook, sheetName: string): unknown[][] {
 // ── Main parser ───────────────────────────────────────────────────────────────
 
 export function parseMBR(buffer: ArrayBuffer): { data: ParsedFinancials; sheetNames: string[] } {
-  const wb = XLSX.read(buffer, { type: "array" });
+  const wb = XLSX.read(buffer, { type: "array", cellDates: true });
   const sheetNames = wb.SheetNames;
 
   // Find MBR / P&L sheet — try multiple common tab names
@@ -138,13 +207,24 @@ export function parseMBR(buffer: ArrayBuffer): { data: ParsedFinancials; sheetNa
   // ── Find the header row (Actuals | Plan | Variance) ──────────────────────
   let dataColActual = 2; // default: col index 2
   let dataColBudget = 3;
+  let headersFound = false;
 
   for (let i = 0; i < Math.min(mbrRows.length, 15); i++) {
     const row = mbrRows[i];
     for (let c = 0; c < row.length; c++) {
       const v = norm(row[c]);
-      if (v === "actuals" || v === "actual") dataColActual = c;
-      if (v === "plan" || v === "budget") dataColBudget = c;
+      if (v === "actuals" || v === "actual") { dataColActual = c; headersFound = true; }
+      if (v === "plan" || v === "budget") { dataColBudget = c; headersFound = true; }
+    }
+  }
+
+  // If no explicit Actuals/Plan headers, try IS-tab layout (col B labels, date month headers)
+  if (!headersFound) {
+    const isLayout = detectISLayout(mbrRows);
+    if (isLayout) {
+      dataColActual = isLayout.actualCol;
+      dataColBudget = isLayout.budgetCol;
+      if (!monthClosed && isLayout.monthClosed) monthClosed = isLayout.monthClosed;
     }
   }
 

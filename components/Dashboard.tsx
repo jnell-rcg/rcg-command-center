@@ -55,6 +55,9 @@ export function Dashboard() {
   const [itemEdits, setItemEdits] = useState<Record<string, ItemEdits>>({});
   const [section, setSection] = useState<Section>("ops");
   const [rcgInternalOpen, setRcgInternalOpen] = useState(true);
+  const [doneOpen, setDoneOpen] = useState(false);
+  const [myTasksOnly, setMyTasksOnly] = useState(false);
+  const [hide1on1s, setHide1on1s] = useState(false);
   const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -166,17 +169,21 @@ export function Dashboard() {
     [items]
   );
 
+  const ONE_ON_ONE_PREFIXES = ["janelle-rick-", "jr23-", "jr-"];
+
   const filtered = useMemo(() => {
     return items.filter((item) => {
-      if (pinnedIds.has(item.id)) return false; // pinned items live only in Today's Focus
+      if (pinnedIds.has(item.id)) return false;
       if (filters.source !== "All" && item.source !== filters.source) return false;
       if (filters.category !== "All" && item.category !== filters.category) return false;
       if (filters.owner !== "All" && item.owner !== filters.owner) return false;
       if (filters.priority !== "All" && item.priority !== filters.priority) return false;
       if (filters.client && item.client !== filters.client) return false;
+      if (myTasksOnly && item.owner !== "Janelle") return false;
+      if (hide1on1s && ONE_ON_ONE_PREFIXES.some((p) => item.id.startsWith(p))) return false;
       return true;
     });
-  }, [items, filters, pinnedIds]);
+  }, [items, filters, pinnedIds, myTasksOnly, hide1on1s]);
 
   const counts = useMemo(
     () => ({
@@ -397,6 +404,29 @@ export function Dashboard() {
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <QuickAddTask onAdded={loadResults} />
+
+          {/* Quick filters */}
+          <button
+            onClick={() => setMyTasksOnly((v) => !v)}
+            className={`rounded-xl px-3 py-2 text-xs font-semibold transition border shadow-sm ${
+              myTasksOnly
+                ? "bg-orange-500 text-white border-orange-500"
+                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            My Tasks
+          </button>
+          <button
+            onClick={() => setHide1on1s((v) => !v)}
+            className={`rounded-xl px-3 py-2 text-xs font-semibold transition border shadow-sm ${
+              hide1on1s
+                ? "bg-slate-700 text-white border-slate-700"
+                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            {hide1on1s ? "Show 1:1s" : "Hide 1:1s"}
+          </button>
+
           {/* Active / Completed toggle */}
           <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
             {(["active", "completed"] as StatusFilter[]).map((s) => (
@@ -686,6 +716,40 @@ export function Dashboard() {
             </div>
           )}
         </>
+      )}
+
+      {/* ─── DONE THIS WEEK (collapsible, active view only) ─── */}
+      {status === "active" && doneItems.length > 0 && (
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <button
+            onClick={() => setDoneOpen((v) => !v)}
+            className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Done This Week</span>
+              <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">{doneItems.length}</span>
+            </div>
+            <svg className={`h-4 w-4 text-slate-400 transition-transform ${doneOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {doneOpen && (
+            <div className="border-t border-slate-100 px-4 py-3 space-y-2">
+              <p className="text-xs text-slate-400">Rolls off after 7 days.</p>
+              {doneItems.map((item) => (
+                <ActionItemCard
+                  key={item.id}
+                  item={item}
+                  onArchive={() => {}}
+                  onPin={() => {}}
+                  onOwnerChange={handleOwnerChange}
+                  isPinned={false}
+                  archivedAt={item.archivedAt}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       )}
       </>}
     </div>

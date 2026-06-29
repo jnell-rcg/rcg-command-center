@@ -1,0 +1,20 @@
+[
+  {
+    "id": "aicfo26-001", "source": "Fathom", "createdAt": "2026-06-26T00:07:00.000Z",
+    "summary": "AI CFO + Ops Tower Structure 6/26 — use Noah's Robin Consulting Connector for QBO, deploy to Railway for team access, fix MEC agent with shared Anthropic API key",
+    "actionItem": "Create shared Anthropic API key; configure Month-End Close Commentary Agent in Railway to use it — fixes team access issue (Brandon + others can now generate drafts)",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "aicfo26-002", "source": "Fathom", "createdAt": "2026-06-26T00:08:00.000Z",
+    "summary": "AI CFO + Ops Tower Structure 6/26",
+    "actionItem": "Email Noah: Raven/AI CFO localhost URL so he can update Intuit app callback and enable QBO integration",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "aicfo26-003", "source": "Fathom", "createdAt": "2026-06-26T00:09:00.000Z",
+    "summary": "AI CFO + Ops Tower Structure 6/26 — Noah transferring Robin Consulting Connector app + prod keys to bypass Intuit compliance process",
+    "actionItem": "Receive QBO prod Client ID + Secret from Noah; plug into AI CFO/Raven to enable QuickBooks integration for all clients",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  }
+]

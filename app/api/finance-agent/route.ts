@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { spawnSync } from "child_process";
-
-const CLAUDE_BIN = "C:\\Users\\jridg\\.local\\bin\\claude.exe";
+import Anthropic from "@anthropic-ai/sdk";
 
 const SYSTEM_PROMPT = `
 You are RCG's Finance Narrative Agent. You write in Rick Sanchez's voice.
@@ -410,23 +408,17 @@ ${toneNotes || "None"}
 Generate the email draft now.
 `;
 
-    const fullPrompt = `${SYSTEM_PROMPT}\n\n${userInput}`;
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const result = spawnSync(CLAUDE_BIN, ["--print"], {
-      input: fullPrompt,
-      encoding: "utf8",
-      timeout: 60_000,
-      shell: false,
+    const message = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2048,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: userInput }],
     });
 
-    if (result.error) {
-      throw new Error(result.error.message);
-    }
-
-    const output = result.stdout?.trim();
-    if (!output) {
-      throw new Error(result.stderr || "No output from Claude");
-    }
+    const output = message.content[0].type === "text" ? message.content[0].text.trim() : "";
+    if (!output) throw new Error("No output from Claude");
 
     return NextResponse.json({ email: output });
   } catch (err) {

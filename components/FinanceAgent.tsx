@@ -97,9 +97,10 @@ const KPI_TEMPLATES: Record<string, string> = {
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function calcVariance(actual: string, budget: string) {
-  const a = parseFloat(actual.replace(/,/g, "")) || 0;
-  const b = parseFloat(budget.replace(/,/g, "")) || 0;
-  if (!b) return { variance: "—", variancePct: "—", varNum: 0, pctNum: 0 };
+  if (!actual || !budget) return { variance: "—", variancePct: "—", varNum: 0, pctNum: 0 };
+  const a = parseFloat(actual.replace(/,/g, ""));
+  const b = parseFloat(budget.replace(/,/g, ""));
+  if (isNaN(a) || isNaN(b) || !b) return { variance: "—", variancePct: "—", varNum: 0, pctNum: 0 };
   const v = a - b;
   const pct = (v / b) * 100;
   const sign = v >= 0 ? "+" : "";
@@ -366,6 +367,10 @@ export function FinanceAgent() {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Track whether cash/opex came from the uploaded file (to prevent input-lock bug)
+  const [cashFromFile, setCashFromFile] = useState(false);
+  const [opexFromFile, setOpexFromFile] = useState(false);
+
   // Per-variance driver generation state
   const [driverLoading, setDriverLoading] = useState<Record<number, boolean>>({});
   const [driverError,   setDriverError]   = useState<Record<number, string>>({});
@@ -432,6 +437,8 @@ export function FinanceAgent() {
     }));
     setOutput(null);
     setError(null);
+    setCashFromFile(false);
+    setOpexFromFile(false);
   };
 
   // Save current client profile to roster
@@ -565,6 +572,8 @@ export function FinanceAgent() {
 
       setParsedFileName(file.name);
       setParsedSheetNames(json.sheetNames ?? []);
+      setCashFromFile(!!d.cashOnHand);
+      setOpexFromFile(!!d.monthlyOpex);
     } catch (err) {
       setParseError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -691,10 +700,25 @@ export function FinanceAgent() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownload = () => {
+    if (!output) return;
+    const filename = `${form.clientName || "MEC"}_${form.monthClosed || "Close"}_Commentary.txt`
+      .replace(/[^a-z0-9_\-. ]/gi, "_");
+    const blob = new Blob([output], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleReset = () => {
     setForm(DEFAULT_STATE);
     setOutput(null);
     setError(null);
+    setCashFromFile(false);
+    setOpexFromFile(false);
   };
 
   const isAutoPromoted = (account: string) =>
@@ -1009,8 +1033,8 @@ export function FinanceAgent() {
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
               <SectionHeader>Cash Position</SectionHeader>
               <div className="grid grid-cols-2 gap-3">
-                {/* Cash on Hand — read-only if found, editable if not */}
-                {form.cashOnHand ? (
+                {/* Cash on Hand — read-only if parsed from file, editable otherwise */}
+                {cashFromFile ? (
                   <div className="rounded-lg bg-slate-50 px-4 py-3">
                     <span className="block text-[10px] font-semibold text-slate-400 mb-1">Cash on Hand</span>
                     <span className="text-lg font-extrabold text-slate-800">{fmt(form.cashOnHand)}</span>
@@ -1026,8 +1050,8 @@ export function FinanceAgent() {
                     />
                   </Field>
                 )}
-                {/* Monthly OpEx — read-only if found, editable if not */}
-                {form.monthlyOpex ? (
+                {/* Monthly OpEx — read-only if parsed from file, editable otherwise */}
+                {opexFromFile ? (
                   <div className="rounded-lg bg-slate-50 px-4 py-3">
                     <span className="block text-[10px] font-semibold text-slate-400 mb-1">Monthly OpEx (avg)</span>
                     <span className="text-lg font-extrabold text-slate-800">{fmt(form.monthlyOpex)}</span>
@@ -1292,12 +1316,20 @@ export function FinanceAgent() {
                 <span className="ml-2 text-[10px] text-white/40 font-medium uppercase tracking-wider">Rick&apos;s voice</span>
               </div>
               {output && (
-                <button
-                  onClick={handleCopy}
-                  className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1 text-xs font-semibold text-white"
-                >
-                  {copied ? "✓ Copied" : "Copy"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleCopy}
+                    className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1 text-xs font-semibold text-white"
+                  >
+                    {copied ? "✓ Copied" : "Copy"}
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    className="rounded-md bg-white/10 hover:bg-white/20 transition px-3 py-1 text-xs font-semibold text-white"
+                  >
+                    Download
+                  </button>
+                </div>
               )}
             </div>
 

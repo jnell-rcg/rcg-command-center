@@ -1,0 +1,38 @@
+[
+  {
+    "id": "ah26-001", "source": "Fathom", "createdAt": "2026-06-26T00:01:00.000Z",
+    "summary": "RCG All Hands 6/26 — Dave Gutman joins as Advisory Board Chairman, $85k-100k MRR goal, new FP&A-first sales strategy",
+    "actionItem": "Schedule Dave Gutman intros with the full team; invite him to monthly reviews",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "ah26-002", "source": "Fathom", "createdAt": "2026-06-26T00:02:00.000Z",
+    "summary": "RCG All Hands 6/26",
+    "actionItem": "Launch paid coaching program for fractional CFOs — enroll 6 prospects",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "New Lead / Sales", "isOverdue": false
+  },
+  {
+    "id": "ah26-003", "source": "Fathom", "createdAt": "2026-06-26T00:03:00.000Z",
+    "summary": "RCG All Hands 6/26",
+    "actionItem": "Kill Carbon; build lightweight internal close tracker to replace it",
+    "owner": "Rick", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "ah26-004", "source": "Fathom", "createdAt": "2026-06-26T00:04:00.000Z",
+    "summary": "RCG All Hands 6/26",
+    "actionItem": "Configure AI tool APIs (Ops Tower, AI CFO); announce availability to team; collect UI feedback",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
+  },
+  {
+    "id": "ah26-005", "source": "Fathom", "createdAt": "2026-06-26T00:05:00.000Z",
+    "summary": "RCG All Hands 6/26",
+    "actionItem": "Set up Zoom for upcoming webinar (Jul 9)",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "ah26-006", "source": "Fathom", "createdAt": "2026-06-26T00:06:00.000Z",
+    "summary": "RCG All Hands 6/26",
+    "actionItem": "Schedule biweekly sales/pipeline update for All Hands (Zack to own)",
+    "owner": "Zack", "client": "RCG Internal", "priority": "Medium", "category": "Internal Action Item", "isOverdue": false
+  }
+]
