@@ -55,4 +55,11 @@
     "actionItem": "Watch Loom tutorial on Nova (AI SDR) sent by Nash Lynch",
     "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
   }
+,
+  {
+    "id": "strat-006", "source": "Manual", "createdAt": "2026-06-26T00:01:00.000Z",
+    "summary": "Dept Heads agenda item — NPS Switch with existing customers",
+    "actionItem": "Discuss NPS Switch process with existing RCG clients at next Dept Heads — Rick flagged this. Clarify what it means and how to implement. (Note: came up in Nova SDR call too as a customer success workflow opportunity.)",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "Medium", "category": "Internal Action Item", "isOverdue": false
+  }
 ]
