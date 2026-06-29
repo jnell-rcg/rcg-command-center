@@ -17,4 +17,17 @@
     "actionItem": "Receive QBO prod Client ID + Secret from Noah; plug into AI CFO/Raven to enable QuickBooks integration for all clients",
     "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Internal Action Item", "isOverdue": false
   }
+,
+  {
+    "id": "aicfo26-004", "source": "Fathom", "createdAt": "2026-06-26T00:13:00.000Z",
+    "summary": "AI CFO + Ops Tower Structure 6/26 — Noah to send QBO prod keys, need to follow up if not received",
+    "actionItem": "Follow up with Noah: confirm QBO prod Client ID + Secret received, Intuit callback URL updated, and compliance screenshots sent to Rick — these are blockers for QB integration",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "High", "category": "Deadline / Follow-up", "isOverdue": false
+  },
+  {
+    "id": "aicfo26-005", "source": "Fathom", "createdAt": "2026-06-26T00:14:00.000Z",
+    "summary": "AI CFO + Ops Tower Structure 6/26 — one owner per tool model agreed",
+    "actionItem": "Implement 'one owner, one tool' model: Janelle owns Ops Tower, Rick owns AI CFO/Raven. No feature creep across tools. Document owners and share with team.",
+    "owner": "Janelle", "client": "RCG Internal", "priority": "Medium", "category": "Internal Action Item", "isOverdue": false
+  }
 ]
