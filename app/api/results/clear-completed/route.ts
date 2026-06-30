@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { clearAllCompleted } from "@/lib/fileQueue";
+import { clearCompleted } from "@/lib/stateStore";
 
 export async function POST() {
-  const count = clearAllCompleted();
-  return NextResponse.json({ cleared: count });
+  clearCompleted();
+  return NextResponse.json({ ok: true });
 }

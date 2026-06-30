@@ -48,6 +48,25 @@ export function writePins(ids: string[]): string[] {
   return ids;
 }
 
+// Permanently completed item IDs — stored on Railway Volume so they survive redeploys.
+// This is the authoritative "done" store; readAllResults() filters these IDs out.
+const COMPLETED_FILE = join(STATE_DIR, "completed.json");
+
+export function readCompleted(): Set<string> {
+  return new Set<string>(readJson<string[]>(COMPLETED_FILE, []));
+}
+
+export function appendCompleted(id: string): void {
+  const existing = readCompleted();
+  if (existing.has(id)) return;
+  existing.add(id);
+  writeJson(COMPLETED_FILE, [...existing]);
+}
+
+export function clearCompleted(): void {
+  writeJson(COMPLETED_FILE, []);
+}
+
 const SWEEP_META_FILE = join(STATE_DIR, "sweep-meta.json");
 
 export function getLastSweepAt(): string | null {
