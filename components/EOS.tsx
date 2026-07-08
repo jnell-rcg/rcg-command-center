@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type RockPriority = "P0" | "P1" | "P2" | "P3";
-type RockStatus = "In Progress" | "Completed" | "At Risk" | "Not Started";
+type RockStatus = "In Progress" | "Completed" | "At Risk" | "Not Started" | "On Track" | "Off Track";
 
 interface Rock {
   id: string;
@@ -104,6 +104,52 @@ const ICP = {
     "Businesses under $2M revenue with massive transaction volume",
   ],
 };
+
+// ─── Q3 2026 Rocks ────────────────────────────────────────────────────────────
+
+interface Q3Rock {
+  id: string;
+  owner: string;
+  name: string;
+  quarter: string;
+  status: "On Track" | "At Risk" | "Off Track";
+  description: string;
+}
+
+const Q3_ROCKS: Q3Rock[] = [
+  {
+    id: "q3-rick-cfo-course",
+    owner: "Rick",
+    name: "CFO Course Launch",
+    quarter: "Q3 2026",
+    status: "On Track",
+    description: "Design and launch a paid coaching program for fractional CFOs and finance leaders. Enroll the first 6 prospects. Productizes Rick's expertise and opens a new revenue lane outside of client services.",
+  },
+  {
+    id: "q3-janelle-ai-infra",
+    owner: "Janelle",
+    name: "AI Agent Infrastructure",
+    quarter: "Q3 2026",
+    status: "On Track",
+    description: "Build and deploy RCG's core AI agent stack: Ops Tower (team-wide access), Month-End Close Commentary Agent (shared API key, Railway deploy), and AI CFO/Raven (QBO integration via Noah's connector). Establish one-owner-per-tool model.",
+  },
+  {
+    id: "q3-zack-revenue-brand",
+    owner: "Zack",
+    name: "Revenue & Brand Growth",
+    quarter: "Q3 2026",
+    status: "On Track",
+    description: "Own LinkedIn and Twitter content channels to build RCG's brand and inbound pipeline. Support the CFO coaching program launch with marketing. Drive biweekly sales/pipeline updates at All Hands.",
+  },
+  {
+    id: "q3-maria-delivery",
+    owner: "Maria",
+    name: "Delivery Efficiency — 10-Day Close",
+    quarter: "Q3 2026",
+    status: "On Track",
+    description: "Reduce month-end close cycle to 10 days across all clients. Standardize the accounting-to-FP&A bridge, enforce the no-PDF/Excel-only data standard, and build a repeatable MEC workflow that Maria oversees rather than executes.",
+  },
+];
 
 // ─── Q2 Rocks ─────────────────────────────────────────────────────────────────
 
@@ -476,6 +522,45 @@ const PERSON_COLOR: Record<string, string> = {
   Eric:    "bg-blue-100 text-blue-700",
 };
 
+// ─── Q3 Rock Card ─────────────────────────────────────────────────────────────
+
+const Q3_STATUS_STYLE = {
+  "On Track":  { border: "border-emerald-200", bg: "bg-emerald-50",  badge: "bg-emerald-600 text-white",  dot: "bg-emerald-500" },
+  "At Risk":   { border: "border-amber-200",   bg: "bg-amber-50",    badge: "bg-amber-500 text-white",    dot: "bg-amber-400"   },
+  "Off Track": { border: "border-red-300",     bg: "bg-red-50",      badge: "bg-red-600 text-white",      dot: "bg-red-500"     },
+};
+
+function Q3RockCard({ rock }: { rock: Q3Rock }) {
+  const style = Q3_STATUS_STYLE[rock.status];
+  const ownerColor = PERSON_COLOR[rock.owner] ?? "bg-slate-100 text-slate-600";
+
+  return (
+    <div className={`rounded-xl border ${style.border} overflow-hidden shadow-sm`}>
+      <div className={`${style.bg} px-4 py-3`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${style.badge}`}>
+                {rock.status}
+              </span>
+              <span className="rounded-full border border-slate-200 bg-white/70 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                {rock.quarter}
+              </span>
+            </div>
+            <p className="text-sm font-bold leading-snug text-slate-900">{rock.name}</p>
+          </div>
+          <span className={cn("flex-shrink-0 self-start rounded-full px-2.5 py-0.5 text-[11px] font-bold", ownerColor)}>
+            {rock.owner}
+          </span>
+        </div>
+      </div>
+      <div className="border-t border-slate-100 px-4 py-3">
+        <p className="text-xs leading-relaxed text-slate-700">{rock.description}</p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Rock Card ────────────────────────────────────────────────────────────────
 
 function RockCard({ rock }: { rock: Rock }) {
@@ -660,7 +745,9 @@ function IssueCard({ issue }: { issue: Issue }) {
 // ─── Rocks Tab ────────────────────────────────────────────────────────────────
 
 function RocksTab() {
+  const [showQ2, setShowQ2] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
+
   const active    = Q2_ROCKS.filter((r) => r.status !== "Completed");
   const completed = Q2_ROCKS.filter((r) => r.status === "Completed");
 
@@ -669,50 +756,88 @@ function RocksTab() {
 
   return (
     <div className="space-y-8">
-      {(["P0", "P1", "P2", "P3"] as RockPriority[]).map((p) => {
-        const rocks = groups[p];
-        if (!rocks.length) return null;
-        const style = priorityStyle(p);
-        return (
-          <div key={p}>
-            <div className="mb-3 flex items-center gap-2">
-              <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${style.badge}`}>
-                {style.label}
-              </span>
-              <span className="text-xs text-slate-400">— {rocks.length} rock{rocks.length !== 1 ? "s" : ""}</span>
-              <div className="flex-1 border-t border-slate-200" />
-            </div>
-            <div className="space-y-3">
-              {rocks.map((r) => <RockCard key={r.id} rock={r} />)}
-            </div>
-          </div>
-        );
-      })}
 
-      {completed.length > 0 && (
-        <div>
-          <div className="mb-3 flex items-center gap-2">
-            <button
-              onClick={() => setShowCompleted((v) => !v)}
-              className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <span className="rounded-full bg-slate-400 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-white">
-                Completed
-              </span>
-              <span>— {completed.length} rock{completed.length !== 1 ? "s" : ""}</span>
-              <svg className={`h-3 w-3 transition-transform ${showCompleted ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            <div className="flex-1 border-t border-slate-200" />
-          </div>
-          {showCompleted && (
-            <div className="space-y-3">
-              {completed.map((r) => <RockCard key={r.id} rock={r} />)}
-            </div>
-          )}
+      {/* ── Q3 2026 ── */}
+      <div>
+        <div className="mb-4 flex items-center gap-2">
+          <span className="rounded-full bg-teal-700 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-white">
+            Q3 2026
+          </span>
+          <span className="text-xs text-slate-400">— {Q3_ROCKS.length} rocks</span>
+          <div className="flex-1 border-t border-slate-200" />
         </div>
-      )}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {Q3_ROCKS.map((r) => <Q3RockCard key={r.id} rock={r} />)}
+        </div>
+      </div>
+
+      {/* ── Q2 2026 (collapsible) ── */}
+      <div>
+        <div className="mb-3 flex items-center gap-2">
+          <button
+            onClick={() => setShowQ2((v) => !v)}
+            className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <span className="rounded-full bg-slate-500 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-white">
+              Q2 2026
+            </span>
+            <span>— {Q2_ROCKS.length} rocks</span>
+            <svg className={`h-3 w-3 transition-transform ${showQ2 ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div className="flex-1 border-t border-slate-200" />
+        </div>
+
+        {showQ2 && (
+          <div className="space-y-8">
+            {(["P0", "P1", "P2", "P3"] as RockPriority[]).map((p) => {
+              const rocks = groups[p];
+              if (!rocks.length) return null;
+              const style = priorityStyle(p);
+              return (
+                <div key={p}>
+                  <div className="mb-3 flex items-center gap-2">
+                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${style.badge}`}>
+                      {style.label}
+                    </span>
+                    <span className="text-xs text-slate-400">— {rocks.length} rock{rocks.length !== 1 ? "s" : ""}</span>
+                    <div className="flex-1 border-t border-slate-200" />
+                  </div>
+                  <div className="space-y-3">
+                    {rocks.map((r) => <RockCard key={r.id} rock={r} />)}
+                  </div>
+                </div>
+              );
+            })}
+
+            {completed.length > 0 && (
+              <div>
+                <div className="mb-3 flex items-center gap-2">
+                  <button
+                    onClick={() => setShowCompleted((v) => !v)}
+                    className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <span className="rounded-full bg-slate-400 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-white">
+                      Completed
+                    </span>
+                    <span>— {completed.length} rock{completed.length !== 1 ? "s" : ""}</span>
+                    <svg className={`h-3 w-3 transition-transform ${showCompleted ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div className="flex-1 border-t border-slate-200" />
+                </div>
+                {showCompleted && (
+                  <div className="space-y-3">
+                    {completed.map((r) => <RockCard key={r.id} rock={r} />)}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -896,7 +1021,7 @@ function InsightsTab() {
 type TabId = "rocks" | "issues" | "vto" | "insights";
 
 const TABS: { id: TabId; label: string; count?: number }[] = [
-  { id: "rocks",    label: "Q2 Rocks",           count: Q2_ROCKS.filter((r) => r.status !== "Completed").length },
+  { id: "rocks",    label: "Rocks",               count: Q3_ROCKS.length + Q2_ROCKS.filter((r) => r.status !== "Completed").length },
   { id: "issues",   label: "Issues (IDS)",        count: ISSUES.length },
   { id: "vto",      label: "V/TO" },
   { id: "insights", label: "Leadership Insights" },
@@ -915,7 +1040,7 @@ export function EOS() {
               <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Entrepreneurial Operating System</p>
               <h1 className="mt-0.5 text-xl font-bold text-white">RCG Financial — EOS Dashboard</h1>
               <p className="mt-0.5 text-sm text-white/50">
-                Q2 2026 · {Q2_ROCKS.filter((r) => r.status !== "Completed").length} Active Rocks · {ISSUES.length} Strategic Issues
+                Q3 2026 · {Q3_ROCKS.length} Active Rocks · {ISSUES.length} Strategic Issues
               </p>
             </div>
             <div className="flex-shrink-0 text-right">
