@@ -557,8 +557,9 @@ const Q3_STORAGE_KEY = "rcg-q3-rocks";
 
 interface Q3RockState {
   status: RockStatus;
-  checked: string[];   // milestone texts that are checked off
-  extra: string[];     // user-added milestone texts
+  checked: string[];        // milestone texts that are checked off
+  extra: string[];          // user-added milestone texts
+  edits: Record<number, string>; // index → edited text for any milestone
   updates: string;
 }
 
@@ -586,19 +587,24 @@ function EditableRockCard({ rock }: { rock: Rock }) {
     status: rock.status,
     checked: [],
     extra: [],
+    edits: {},
     updates: rock.updates ?? "",
   };
 
   const [state, setState] = useState<Q3RockState>(() => loadQ3State(rock.id, defaults));
   const [newMilestone, setNewMilestone] = useState("");
   const [addingMilestone, setAddingMilestone] = useState(false);
+  const [editingMilestoneIdx, setEditingMilestoneIdx] = useState<number | null>(null);
+  const [editingMilestoneText, setEditingMilestoneText] = useState("");
   const [editingUpdates, setEditingUpdates] = useState(false);
   const [showUpdates, setShowUpdates] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const milestoneEditRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { saveQ3State(rock.id, state); }, [rock.id, state]);
   useEffect(() => { if (addingMilestone) inputRef.current?.focus(); }, [addingMilestone]);
+  useEffect(() => { if (editingMilestoneIdx !== null) milestoneEditRef.current?.focus(); }, [editingMilestoneIdx]);
   useEffect(() => { if (editingUpdates) textareaRef.current?.focus(); }, [editingUpdates]);
 
   function cycleStatus() {
@@ -621,15 +627,45 @@ function EditableRockCard({ rock }: { rock: Rock }) {
     setAddingMilestone(false);
   }
 
-  function deleteMilestone(text: string) {
-    setState((s) => ({
-      ...s,
-      extra: s.extra.filter((e) => e !== text),
-      checked: s.checked.filter((c) => c !== text),
-    }));
+  function deleteMilestone(idx: number, text: string) {
+    const isExtra = idx >= rock.milestones.length;
+    setState((s) => {
+      const next = { ...s, checked: s.checked.filter((c) => c !== text) };
+      if (isExtra) next.extra = s.extra.filter((_, i) => i !== idx - rock.milestones.length);
+      // remove any edit stored for this index; shift edits above it down
+      const edits: Record<number, string> = {};
+      for (const [k, v] of Object.entries(s.edits)) {
+        const ki = Number(k);
+        if (ki < idx) edits[ki] = v;
+        else if (ki > idx) edits[ki - 1] = v;
+      }
+      next.edits = edits;
+      return next;
+    });
   }
 
-  const allMilestones = [...rock.milestones, ...state.extra];
+  function startEditMilestone(idx: number, currentText: string) {
+    setEditingMilestoneIdx(idx);
+    setEditingMilestoneText(currentText);
+  }
+
+  function saveMilestoneEdit(idx: number) {
+    const text = editingMilestoneText.trim();
+    if (text) {
+      setState((s) => {
+        // update checked set if the text changed
+        const oldText = s.edits[idx] ?? rock.milestones[idx] ?? s.extra[idx - rock.milestones.length] ?? "";
+        const checked = s.checked.includes(oldText)
+          ? [...s.checked.filter((c) => c !== oldText), text]
+          : s.checked;
+        return { ...s, edits: { ...s.edits, [idx]: text }, checked };
+      });
+    }
+    setEditingMilestoneIdx(null);
+    setEditingMilestoneText("");
+  }
+
+  const allMilestones = [...rock.milestones, ...state.extra].map((m, i) => state.edits[i] ?? m);
   const doneCount = allMilestones.filter((m) => state.checked.includes(m)).length;
 
   // Determine style from status (same palette as priorityStyle but status-driven for Q3)
@@ -698,16 +734,14 @@ function EditableRockCard({ rock }: { rock: Rock }) {
         <ul className="space-y-1.5">
           {allMilestones.map((m, i) => {
             const checked = state.checked.includes(m);
-            const isExtra = rock.milestones.length <= i;
+            const isEditing = editingMilestoneIdx === i;
             return (
               <li key={i} className="group flex items-start gap-2">
                 <button
                   onClick={() => toggleMilestone(m)}
                   className={cn(
                     "mt-0.5 flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded border transition-colors",
-                    checked
-                      ? "border-emerald-500 bg-emerald-500"
-                      : `border-slate-300 bg-white hover:border-${style.dot.replace("bg-", "")}`
+                    checked ? "border-emerald-500 bg-emerald-500" : "border-slate-300 bg-white hover:border-slate-400"
                   )}
                 >
                   {checked && (
@@ -716,19 +750,39 @@ function EditableRockCard({ rock }: { rock: Rock }) {
                     </svg>
                   )}
                 </button>
-                <span className={cn("flex-1 text-xs leading-relaxed", checked ? "line-through text-slate-400" : "text-slate-700")}>
-                  {m}
-                </span>
-                {isExtra && (
-                  <button
-                    onClick={() => deleteMilestone(m)}
-                    className="hidden group-hover:flex flex-shrink-0 items-center text-slate-300 hover:text-red-400 transition-colors"
+
+                {isEditing ? (
+                  <input
+                    ref={milestoneEditRef}
+                    value={editingMilestoneText}
+                    onChange={(e) => setEditingMilestoneText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") saveMilestoneEdit(i);
+                      if (e.key === "Escape") { setEditingMilestoneIdx(null); setEditingMilestoneText(""); }
+                    }}
+                    onBlur={() => saveMilestoneEdit(i)}
+                    className="flex-1 rounded border border-teal-300 bg-white px-2 py-0.5 text-xs text-slate-700 outline-none focus:ring-1 focus:ring-teal-200"
+                  />
+                ) : (
+                  <span
+                    onClick={() => !checked && startEditMilestone(i, m)}
+                    className={cn(
+                      "flex-1 text-xs leading-relaxed",
+                      checked ? "line-through text-slate-400 cursor-default" : "text-slate-700 cursor-text hover:text-teal-700"
+                    )}
                   >
-                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                    {m}
+                  </span>
                 )}
+
+                <button
+                  onClick={() => deleteMilestone(i, m)}
+                  className="hidden group-hover:flex flex-shrink-0 items-center text-slate-300 hover:text-red-400 transition-colors"
+                >
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </li>
             );
           })}
