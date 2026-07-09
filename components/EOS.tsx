@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -107,47 +107,74 @@ const ICP = {
 
 // ─── Q3 2026 Rocks ────────────────────────────────────────────────────────────
 
-interface Q3Rock {
-  id: string;
-  owner: string;
-  name: string;
-  quarter: string;
-  status: "On Track" | "At Risk" | "Off Track";
-  description: string;
-}
-
-const Q3_ROCKS: Q3Rock[] = [
+const Q3_ROCKS: Rock[] = [
   {
     id: "q3-rick-cfo-course",
-    owner: "Rick",
     name: "CFO Course Launch",
-    quarter: "Q3 2026",
+    priority: "P1",
     status: "On Track",
-    description: "Design and launch a paid coaching program for fractional CFOs and finance leaders. Enroll the first 6 prospects. Productizes Rick's expertise and opens a new revenue lane outside of client services.",
+    owner: "Rick",
+    objective: "New Revenue",
+    targetResult: "Paid coaching program live and generating revenue. First 6 fractional CFO clients enrolled. Productizes Rick's expertise into a scalable offer outside of 1:1 client services.",
+    milestones: [
+      "Define course curriculum — modules, delivery format, cadence",
+      "Set pricing and enrollment model",
+      "Record first 3 modules",
+      "Launch landing page / enrollment page",
+      "Enroll first 6 coaching clients",
+    ],
+    updates: "All Hands 6/26: coaching program for fractional CFOs confirmed as Q3 rock. Rick to own end-to-end.",
   },
   {
     id: "q3-janelle-ai-infra",
-    owner: "Janelle",
     name: "AI Agent Infrastructure",
-    quarter: "Q3 2026",
+    priority: "P1",
     status: "On Track",
-    description: "Build and deploy RCG's core AI agent stack: Ops Tower (team-wide access), Month-End Close Commentary Agent (shared API key, Railway deploy), and AI CFO/Raven (QBO integration via Noah's connector). Establish one-owner-per-tool model.",
+    owner: "Janelle",
+    objective: "Internal Scale",
+    targetResult: "Ops Tower, MEC Commentary Agent, and AI CFO/Raven all deployed on Railway for team-wide access. One-owner-per-tool model established. QBO integration live.",
+    milestones: [
+      "Ops Tower: enable team-wide access — share URL, onboard all team members",
+      "MEC Agent: configure shared Anthropic API key on Railway (fixes Brandon + team access)",
+      "AI CFO/Raven: receive QBO prod Client ID + Secret from Noah",
+      "Wire up QBO integration using Noah's Robin Consulting Connector",
+      "Document one-owner-per-tool model; share with team",
+    ],
+    updates: "AI CFO structure call 6/26 with Noah: use existing Robin Consulting Connector to bypass Intuit compliance. Noah to transfer app + prod keys. MEC agent blocked on shared API key — Janelle to configure.",
   },
   {
     id: "q3-zack-revenue-brand",
-    owner: "Zack",
     name: "Revenue & Brand Growth",
-    quarter: "Q3 2026",
+    priority: "P1",
     status: "On Track",
-    description: "Own LinkedIn and Twitter content channels to build RCG's brand and inbound pipeline. Support the CFO coaching program launch with marketing. Drive biweekly sales/pipeline updates at All Hands.",
+    owner: "Zack",
+    objective: "Increase Sales",
+    targetResult: "RCG LinkedIn and Twitter channels active and growing. CFO coaching program enrollment pipeline running. Biweekly sales pipeline updates embedded into All Hands cadence.",
+    milestones: [
+      "Launch LinkedIn posting cadence (3x/week minimum)",
+      "Launch Twitter/X channel — first 10 posts published",
+      "Build content pipeline: case studies, frameworks, thought leadership",
+      "Drive CFO coaching program enrollment — 6 qualified prospects",
+      "Establish biweekly sales/pipeline update format for All Hands",
+    ],
+    updates: "All Hands 6/26: Zack owns LinkedIn/Twitter brand channels and biweekly sales update. Draft posts for team review requested.",
   },
   {
     id: "q3-maria-delivery",
-    owner: "Maria",
     name: "Delivery Efficiency — 10-Day Close",
-    quarter: "Q3 2026",
+    priority: "P1",
     status: "On Track",
-    description: "Reduce month-end close cycle to 10 days across all clients. Standardize the accounting-to-FP&A bridge, enforce the no-PDF/Excel-only data standard, and build a repeatable MEC workflow that Maria oversees rather than executes.",
+    owner: "Maria",
+    objective: "Scale Bandwidth",
+    targetResult: "Month-end close cycle reduced to 10 days across all clients. MEC workflow standardized so Maria oversees rather than executes. No-PDF/Excel-only standard enforced.",
+    milestones: [
+      "Document current close timeline per client — identify longest cycles",
+      "Identify top 3 bottlenecks per client (access, data format, rework)",
+      "Enforce no-PDF / Excel-only data standard across all clients",
+      "Assign close execution to team; Maria in oversight role",
+      "Achieve 10-day close for at least 3 clients by end of Q3",
+    ],
+    updates: "Maria owns accounting delivery. Natalia onboarded 6/25 on Crowdvest portfolio. Next step: map current close timelines and set 10-day target per client.",
   },
 ];
 
@@ -522,40 +549,242 @@ const PERSON_COLOR: Record<string, string> = {
   Eric:    "bg-blue-100 text-blue-700",
 };
 
-// ─── Q3 Rock Card ─────────────────────────────────────────────────────────────
+// ─── Editable Rock Card (Q3) ──────────────────────────────────────────────────
+// Same visual format as RockCard but with inline milestone editing and
+// status toggle. State persisted to localStorage under rcg-q3-rocks.
 
-const Q3_STATUS_STYLE = {
-  "On Track":  { border: "border-emerald-200", bg: "bg-emerald-50",  badge: "bg-emerald-600 text-white",  dot: "bg-emerald-500" },
-  "At Risk":   { border: "border-amber-200",   bg: "bg-amber-50",    badge: "bg-amber-500 text-white",    dot: "bg-amber-400"   },
-  "Off Track": { border: "border-red-300",     bg: "bg-red-50",      badge: "bg-red-600 text-white",      dot: "bg-red-500"     },
-};
+const Q3_STORAGE_KEY = "rcg-q3-rocks";
 
-function Q3RockCard({ rock }: { rock: Q3Rock }) {
-  const style = Q3_STATUS_STYLE[rock.status];
-  const ownerColor = PERSON_COLOR[rock.owner] ?? "bg-slate-100 text-slate-600";
+interface Q3RockState {
+  status: RockStatus;
+  checked: string[];   // milestone texts that are checked off
+  extra: string[];     // user-added milestone texts
+  updates: string;
+}
+
+function loadQ3State(id: string, defaults: Q3RockState): Q3RockState {
+  if (typeof window === "undefined") return defaults;
+  try {
+    const raw = localStorage.getItem(Q3_STORAGE_KEY);
+    const all = raw ? JSON.parse(raw) : {};
+    return all[id] ? { ...defaults, ...all[id] } : defaults;
+  } catch { return defaults; }
+}
+
+function saveQ3State(id: string, state: Q3RockState) {
+  try {
+    const raw = localStorage.getItem(Q3_STORAGE_KEY);
+    const all = raw ? JSON.parse(raw) : {};
+    localStorage.setItem(Q3_STORAGE_KEY, JSON.stringify({ ...all, [id]: state }));
+  } catch {}
+}
+
+const STATUS_CYCLE: RockStatus[] = ["On Track", "At Risk", "Off Track", "In Progress"];
+
+function EditableRockCard({ rock }: { rock: Rock }) {
+  const defaults: Q3RockState = {
+    status: rock.status,
+    checked: [],
+    extra: [],
+    updates: rock.updates ?? "",
+  };
+
+  const [state, setState] = useState<Q3RockState>(() => loadQ3State(rock.id, defaults));
+  const [newMilestone, setNewMilestone] = useState("");
+  const [addingMilestone, setAddingMilestone] = useState(false);
+  const [editingUpdates, setEditingUpdates] = useState(false);
+  const [showUpdates, setShowUpdates] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => { saveQ3State(rock.id, state); }, [rock.id, state]);
+  useEffect(() => { if (addingMilestone) inputRef.current?.focus(); }, [addingMilestone]);
+  useEffect(() => { if (editingUpdates) textareaRef.current?.focus(); }, [editingUpdates]);
+
+  function cycleStatus() {
+    const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(state.status) + 1) % STATUS_CYCLE.length];
+    setState((s) => ({ ...s, status: next }));
+  }
+
+  function toggleMilestone(text: string) {
+    setState((s) => ({
+      ...s,
+      checked: s.checked.includes(text) ? s.checked.filter((c) => c !== text) : [...s.checked, text],
+    }));
+  }
+
+  function addMilestone() {
+    const text = newMilestone.trim();
+    if (!text) { setAddingMilestone(false); return; }
+    setState((s) => ({ ...s, extra: [...s.extra, text] }));
+    setNewMilestone("");
+    setAddingMilestone(false);
+  }
+
+  function deleteMilestone(text: string) {
+    setState((s) => ({
+      ...s,
+      extra: s.extra.filter((e) => e !== text),
+      checked: s.checked.filter((c) => c !== text),
+    }));
+  }
+
+  const allMilestones = [...rock.milestones, ...state.extra];
+  const doneCount = allMilestones.filter((m) => state.checked.includes(m)).length;
+
+  // Determine style from status (same palette as priorityStyle but status-driven for Q3)
+  const statusStyleMap: Record<string, ReturnType<typeof priorityStyle>> = {
+    "On Track":   { border: "border-emerald-200", bg: "bg-emerald-50",  badge: "bg-emerald-600 text-white",  dot: "bg-emerald-500",  label: "On Track" },
+    "At Risk":    { border: "border-amber-200",   bg: "bg-amber-50",    badge: "bg-amber-500 text-white",    dot: "bg-amber-400",    label: "At Risk" },
+    "Off Track":  { border: "border-red-300",     bg: "bg-red-50",      badge: "bg-red-600 text-white",      dot: "bg-red-500",      label: "Off Track" },
+    "In Progress":{ border: "border-blue-200",    bg: "bg-blue-50",     badge: "bg-blue-600 text-white",     dot: "bg-blue-500",     label: "In Progress" },
+  };
+  const style = statusStyleMap[state.status] ?? statusStyleMap["On Track"];
 
   return (
     <div className={`rounded-xl border ${style.border} overflow-hidden shadow-sm`}>
+      {/* Header */}
       <div className={`${style.bg} px-4 py-3`}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${style.badge}`}>
-                {rock.status}
-              </span>
+              <button
+                onClick={cycleStatus}
+                title="Click to change status"
+                className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${style.badge} transition-opacity hover:opacity-80`}
+              >
+                {style.label}
+              </button>
               <span className="rounded-full border border-slate-200 bg-white/70 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                {rock.quarter}
+                Q3 2026
               </span>
+              {rock.objective && (
+                <span className="rounded-full border border-slate-200 bg-white/70 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                  {rock.objective}
+                </span>
+              )}
             </div>
             <p className="text-sm font-bold leading-snug text-slate-900">{rock.name}</p>
           </div>
-          <span className={cn("flex-shrink-0 self-start rounded-full px-2.5 py-0.5 text-[11px] font-bold", ownerColor)}>
-            {rock.owner}
-          </span>
+          <div className="flex-shrink-0 text-right">
+            <p className="text-[11px] font-medium text-slate-600">{rock.owner}</p>
+            {allMilestones.length > 0 && (
+              <p className="text-[10px] text-slate-400 mt-0.5">{doneCount}/{allMilestones.length} done</p>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Target result */}
       <div className="border-t border-slate-100 px-4 py-3">
-        <p className="text-xs leading-relaxed text-slate-700">{rock.description}</p>
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Target Result This Quarter</p>
+        <p className="text-xs text-slate-700 leading-relaxed">{rock.targetResult}</p>
+      </div>
+
+      {/* Milestones — editable */}
+      <div className="border-t border-slate-100 px-4 py-3">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Milestones</p>
+          <button
+            onClick={() => setAddingMilestone(true)}
+            className="flex items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-teal-600 transition-colors"
+          >
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Add
+          </button>
+        </div>
+        <ul className="space-y-1.5">
+          {allMilestones.map((m, i) => {
+            const checked = state.checked.includes(m);
+            const isExtra = rock.milestones.length <= i;
+            return (
+              <li key={i} className="group flex items-start gap-2">
+                <button
+                  onClick={() => toggleMilestone(m)}
+                  className={cn(
+                    "mt-0.5 flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded border transition-colors",
+                    checked
+                      ? "border-emerald-500 bg-emerald-500"
+                      : `border-slate-300 bg-white hover:border-${style.dot.replace("bg-", "")}`
+                  )}
+                >
+                  {checked && (
+                    <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+                <span className={cn("flex-1 text-xs leading-relaxed", checked ? "line-through text-slate-400" : "text-slate-700")}>
+                  {m}
+                </span>
+                {isExtra && (
+                  <button
+                    onClick={() => deleteMilestone(m)}
+                    className="hidden group-hover:flex flex-shrink-0 items-center text-slate-300 hover:text-red-400 transition-colors"
+                  >
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+
+        {addingMilestone && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="h-3.5 w-3.5 flex-shrink-0 rounded border border-slate-300 bg-white" />
+            <input
+              ref={inputRef}
+              value={newMilestone}
+              onChange={(e) => setNewMilestone(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addMilestone();
+                if (e.key === "Escape") { setAddingMilestone(false); setNewMilestone(""); }
+              }}
+              onBlur={addMilestone}
+              placeholder="Type milestone and press Enter…"
+              className="flex-1 rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-200"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Updates — collapsible + editable */}
+      <div className="border-t border-slate-100 px-4 py-2">
+        <button
+          onClick={() => setShowUpdates((v) => !v)}
+          className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          <svg className={`h-3 w-3 flex-shrink-0 transition-transform ${showUpdates ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+          Updates / notes
+        </button>
+        {showUpdates && (
+          <div className="mt-1.5">
+            {editingUpdates ? (
+              <textarea
+                ref={textareaRef}
+                value={state.updates}
+                onChange={(e) => setState((s) => ({ ...s, updates: e.target.value }))}
+                onBlur={() => setEditingUpdates(false)}
+                rows={3}
+                className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-200 resize-none"
+              />
+            ) : (
+              <p
+                onClick={() => setEditingUpdates(true)}
+                className="cursor-text text-xs text-slate-600 leading-relaxed min-h-[1.5rem] hover:bg-slate-50 rounded px-1 -mx-1 transition-colors"
+              >
+                {state.updates || <span className="text-slate-300 italic">Click to add notes…</span>}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -767,7 +996,7 @@ function RocksTab() {
           <div className="flex-1 border-t border-slate-200" />
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {Q3_ROCKS.map((r) => <Q3RockCard key={r.id} rock={r} />)}
+          {Q3_ROCKS.map((r) => <EditableRockCard key={r.id} rock={r} />)}
         </div>
       </div>
 
