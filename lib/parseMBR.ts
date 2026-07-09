@@ -8,6 +8,7 @@ import * as XLSX from "xlsx";
 
 export interface ParsedFinancials {
   clientName: string | null;
+  contactName: string | null;
   monthClosed: string | null;
   revenue:      { actual: string; budget: string };
   grossProfit:  { actual: string; budget: string };
@@ -34,6 +35,7 @@ export interface ParsedFinancials {
     driver: string;
   }>;
   kpisRaw: string;
+  clientContext: string | null;
   notes: string | null;
 }
 
@@ -98,14 +100,32 @@ function excelDateToMonthStr(val: unknown): string | null {
   } catch { return null; }
 }
 
-/** Detect IS-tab layout: col A empty, "Account Name" in col B, month date headers in cols E+.
+/** Returns true if the string looks like a date (various formats ops plans use). */
+function looksLikeMonthHeader(val: unknown): boolean {
+  if (isExcelDate(val)) return true;
+  if (typeof val !== "string") return false;
+  const s = val.trim();
+  // "Jan-26", "January 2026", "Jan 2026"
+  if (/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(s)) return true;
+  // "1/1/2026", "01/01/2026", "1-1-2026"
+  if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(s)) return true;
+  // "1/2026", "01/2026"
+  if (/^\d{1,2}[\/\-]\d{4}$/.test(s)) return true;
+  // "2026-01" ISO partial
+  if (/^\d{4}[\/\-]\d{2}$/.test(s)) return true;
+  return false;
+}
+
+/** Detect IS-tab layout: "Account Name" header row, month date headers in later cols.
  *  Returns actualCol (rightmost month with data), budgetCol (Plan/Budget col or 999), and monthClosed. */
 function detectISLayout(rows: unknown[][]): {
   actualCol: number;
   budgetCol: number;
   monthClosed: string | null;
+  debug: string;
 } | null {
-  for (let r = 0; r < Math.min(rows.length, 20); r++) {
+  // Search up to row 30 (some files have tall title blocks)
+  for (let r = 0; r < Math.min(rows.length, 30); r++) {
     for (let c = 0; c < rows[r].length; c++) {
       if (!norm(rows[r][c]).includes("accountname")) continue;
 
@@ -113,7 +133,7 @@ function detectISLayout(rows: unknown[][]): {
       let budgetCol = -1;
       let actualCol = -1;
 
-      // Find explicit Plan/Budget column
+      // Find explicit Plan/Budget column (text header)
       for (let cc = c + 1; cc < hdrRow.length; cc++) {
         const h = norm(hdrRow[cc]);
         if (h === "plan" || h === "budget" || h.includes("annualplan") || h.includes("annualbudget")) {
@@ -122,27 +142,31 @@ function detectISLayout(rows: unknown[][]): {
       }
 
       // Rightmost date-typed column that has numeric data below it
+      // Extend data-row search to r+80 to handle tall summary blocks between header and data
       for (let cc = hdrRow.length - 1; cc > c; cc--) {
         if (cc === budgetCol) continue;
-        const hv = hdrRow[cc];
-        const isMonthCol =
-          isExcelDate(hv) ||
-          (typeof hv === "string" && /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(hv));
-        if (!isMonthCol) continue;
-        for (let rr = r + 1; rr < Math.min(rows.length, r + 40); rr++) {
+        if (!looksLikeMonthHeader(hdrRow[cc])) continue;
+        for (let rr = r + 1; rr < Math.min(rows.length, r + 80); rr++) {
           if (cleanNumber(rows[rr][cc])) { actualCol = cc; break; }
         }
         if (actualCol >= 0) break;
       }
 
-      if (actualCol < 0) return null;
+      if (actualCol < 0) {
+        return null;
+      }
 
       const hdrMonthVal = hdrRow[actualCol];
       const monthClosed = isExcelDate(hdrMonthVal)
         ? excelDateToMonthStr(hdrMonthVal)
         : typeof hdrMonthVal === "string" ? hdrMonthVal.trim() : null;
 
-      return { actualCol, budgetCol: budgetCol >= 0 ? budgetCol : 999, monthClosed };
+      return {
+        actualCol,
+        budgetCol: budgetCol >= 0 ? budgetCol : 999,
+        monthClosed,
+        debug: `IS layout: header row ${r + 1}, label col ${c}, actual col ${actualCol}, budget col ${budgetCol >= 0 ? budgetCol : "none"}`,
+      };
     }
   }
   return null;
@@ -158,9 +182,11 @@ function sheetToRows(wb: XLSX.WorkBook, sheetName: string): unknown[][] {
 
 // ── Main parser ───────────────────────────────────────────────────────────────
 
-export function parseMBR(buffer: ArrayBuffer): { data: ParsedFinancials; sheetNames: string[] } {
+export function parseMBR(buffer: ArrayBuffer): { data: ParsedFinancials; sheetNames: string[]; parsedTab: string | null; parseDebug: string[] } {
   const wb = XLSX.read(buffer, { type: "array", cellDates: true });
   const sheetNames = wb.SheetNames;
+
+  const parseDebug: string[] = [];
 
   // Find MBR / P&L sheet — try multiple common tab names
   const mbrName = wb.SheetNames.find((n) =>
@@ -172,9 +198,13 @@ export function parseMBR(buffer: ArrayBuffer): { data: ParsedFinancials; sheetNa
     norm(n) === "is" ||
     norm(n).includes("budgetvsactual") ||
     norm(n).includes("budgetactual") ||
+    norm(n).includes("actvbud") ||       // "Act. v Bud"
+    norm(n).includes("actualsvsb") ||    // "Actuals vs Budget"
     norm(n).includes("bva") ||
     norm(n).includes("financials")
   ) ?? null;
+
+  parseDebug.push(`Tab search: mbrName="${mbrName ?? "none"}", available=[${wb.SheetNames.join(", ")}]`);
 
   const dashName = wb.SheetNames.find((n) => norm(n).includes("dashboard")) ?? null;
 
@@ -220,12 +250,21 @@ export function parseMBR(buffer: ArrayBuffer): { data: ParsedFinancials; sheetNa
 
   // If no explicit Actuals/Plan headers, try IS-tab layout (col B labels, date month headers)
   if (!headersFound) {
+    parseDebug.push(`No Actuals/Plan headers found — trying IS layout detection on tab "${mbrName}"`);
     const isLayout = detectISLayout(mbrRows);
     if (isLayout) {
       dataColActual = isLayout.actualCol;
       dataColBudget = isLayout.budgetCol;
       if (!monthClosed && isLayout.monthClosed) monthClosed = isLayout.monthClosed;
+      parseDebug.push(isLayout.debug);
+    } else {
+      parseDebug.push(`IS layout detection failed — "Account Name" header or month columns not found in first 30 rows`);
+      // Emit first 30 rows col B values for diagnosis
+      const colBSample = mbrRows.slice(0, 30).map((r, i) => `row${i + 1}:${JSON.stringify(r[1])}`).join(", ");
+      parseDebug.push(`Col B sample: ${colBSample}`);
     }
+  } else {
+    parseDebug.push(`MBR layout: Actuals col ${dataColActual}, Budget col ${dataColBudget}`);
   }
 
   // ── Extract income statement rows ─────────────────────────────────────────
@@ -355,6 +394,7 @@ export function parseMBR(buffer: ArrayBuffer): { data: ParsedFinancials; sheetNa
 
   const data: ParsedFinancials = {
     clientName,
+    contactName: null,
     monthClosed,
     revenue: {
       actual: cleanNumber(rev?.[dataColActual]) ?? "",
@@ -387,8 +427,9 @@ export function parseMBR(buffer: ArrayBuffer): { data: ParsedFinancials; sheetNa
     clientCount:      clientRow ? cleanNumber(clientRow[dataColActual]) : null,
     additionalVariances,
     kpisRaw: kpiLines.join("\n"),
+    clientContext: null,
     notes: null,
   };
 
-  return { data, sheetNames };
+  return { data, sheetNames, parsedTab: mbrName, parseDebug };
 }

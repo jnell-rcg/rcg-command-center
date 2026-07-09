@@ -364,6 +364,8 @@ export function FinanceAgent() {
   const [parseError, setParseError] = useState<string | null>(null);
   const [parsedFileName, setParsedFileName] = useState<string | null>(null);
   const [parsedSheetNames, setParsedSheetNames] = useState<string[]>([]);
+  const [parsedTab, setParsedTab] = useState<string | null>(null);
+  const [parseDebug, setParseDebug] = useState<string[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -514,7 +516,9 @@ export function FinanceAgent() {
       setForm((f) => ({
         ...f,
         clientName:          d.clientName          ?? f.clientName,
+        contactName:         d.contactName         ?? f.contactName,
         monthClosed:         d.monthClosed         ?? f.monthClosed,
+        clientContext:       d.clientContext        ?? f.clientContext,
         cashOnHand:          d.cashOnHand          ?? f.cashOnHand,
         monthlyOpex:         d.monthlyOpex         ?? f.monthlyOpex,
         cashRunway:          d.cashRunway          ?? f.cashRunway,
@@ -529,20 +533,20 @@ export function FinanceAgent() {
         netMarginActualPct:  d.netMarginActualPct  ?? f.netMarginActualPct,
         netMarginBudgetPct:  d.netMarginBudgetPct  ?? f.netMarginBudgetPct,
         revenue: {
-          actual: d.revenue?.actual ? String(Math.round(Number(d.revenue.actual))) : f.revenue.actual,
-          budget: d.revenue?.budget ? String(Math.round(Number(d.revenue.budget))) : f.revenue.budget,
+          actual: d.revenue?.actual ? String(Math.round(Number(d.revenue.actual))) : "",
+          budget: d.revenue?.budget ? String(Math.round(Number(d.revenue.budget))) : "",
         },
         grossProfit: {
-          actual: d.grossProfit?.actual ? String(Math.round(Number(d.grossProfit.actual))) : f.grossProfit.actual,
-          budget: d.grossProfit?.budget ? String(Math.round(Number(d.grossProfit.budget))) : f.grossProfit.budget,
+          actual: d.grossProfit?.actual ? String(Math.round(Number(d.grossProfit.actual))) : "",
+          budget: d.grossProfit?.budget ? String(Math.round(Number(d.grossProfit.budget))) : "",
         },
         opex: {
-          actual: d.opex?.actual ? String(Math.round(Number(d.opex.actual))) : f.opex.actual,
-          budget: d.opex?.budget ? String(Math.round(Number(d.opex.budget))) : f.opex.budget,
+          actual: d.opex?.actual ? String(Math.round(Number(d.opex.actual))) : "",
+          budget: d.opex?.budget ? String(Math.round(Number(d.opex.budget))) : "",
         },
         netIncome: {
-          actual: d.netIncome?.actual ? String(Math.round(Number(d.netIncome.actual))) : f.netIncome.actual,
-          budget: d.netIncome?.budget ? String(Math.round(Number(d.netIncome.budget))) : f.netIncome.budget,
+          actual: d.netIncome?.actual ? String(Math.round(Number(d.netIncome.actual))) : "",
+          budget: d.netIncome?.budget ? String(Math.round(Number(d.netIncome.budget))) : "",
         },
         kpis: d.kpisRaw
           ? [
@@ -572,6 +576,8 @@ export function FinanceAgent() {
 
       setParsedFileName(file.name);
       setParsedSheetNames(json.sheetNames ?? []);
+      setParsedTab(json.parsedTab ?? null);
+      setParseDebug(json.parseDebug ?? []);
       setCashFromFile(!!d.cashOnHand);
       setOpexFromFile(!!d.monthlyOpex);
     } catch (err) {
@@ -719,6 +725,8 @@ export function FinanceAgent() {
     setError(null);
     setCashFromFile(false);
     setOpexFromFile(false);
+    setParsedTab(null);
+    setParseDebug([]);
   };
 
   const isAutoPromoted = (account: string) =>
@@ -823,11 +831,26 @@ export function FinanceAgent() {
                 </p>
               ) : (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-center">
-                  <p className="text-xs font-semibold text-amber-700">No income statement data found in this file.</p>
-                  <p className="text-[10px] text-amber-600 mt-0.5">
-                    Tabs found: {parsedSheetNames.join(", ") || "none"}
-                  </p>
-                  <p className="text-[10px] text-amber-500 mt-0.5">The parser looks for a tab named MBR, P&L, IS, Financials, or Budget vs Actual.</p>
+                  {parsedTab ? (
+                    <>
+                      <p className="text-xs font-semibold text-amber-700">Tab &ldquo;{parsedTab}&rdquo; found but income statement data could not be extracted.</p>
+                      <p className="text-[10px] text-amber-600 mt-0.5">Enter the income statement numbers manually below.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs font-semibold text-amber-700">No income statement tab found in this file.</p>
+                      <p className="text-[10px] text-amber-600 mt-0.5">
+                        Tabs found: {parsedSheetNames.join(", ") || "none"}
+                      </p>
+                      <p className="text-[10px] text-amber-500 mt-0.5">The parser looks for a tab named MBR, P&L, IS, Act. v Bud, Financials, or Budget vs Actual.</p>
+                    </>
+                  )}
+                  {parseDebug.length > 0 && (
+                    <details className="mt-1 text-left">
+                      <summary className="text-[10px] text-amber-400 cursor-pointer">Debug info</summary>
+                      <pre className="text-[9px] text-amber-500 mt-1 whitespace-pre-wrap">{parseDebug.join("\n")}</pre>
+                    </details>
+                  )}
                 </div>
               )
             )}
