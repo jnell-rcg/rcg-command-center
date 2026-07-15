@@ -3,6 +3,6 @@ builder = "nixpacks"
 buildCommand = "NODE_OPTIONS='--max-old-space-size=512' npm run build"
 
 [deploy]
-startCommand = "node .next/standalone/server.js"
+startCommand = "HOSTNAME=0.0.0.0 node .next/standalone/server.js"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
