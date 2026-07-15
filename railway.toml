@@ -4,5 +4,7 @@ buildCommand = "NODE_OPTIONS='--max-old-space-size=512' npm run build && cp -r p
 
 [deploy]
 startCommand = "HOSTNAME=0.0.0.0 node .next/standalone/server.js"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
